@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>がんばりスケジュール</title>
+<style>
+  :root {
+    --bg: #fdf6ec;
+    --card: #ffffff;
+    --pink: #ff8fab;
+    --pink-dark: #f4638a;
+    --yellow: #ffd166;
+    --orange: #ffb347;
+    --green: #7ed957;
+    --green-dark: #5cb85c;
+    --blue: #6ec6ff;
+    --purple: #c39bd3;
+    --text: #5a4632;
+    --text-light: #9c8873;
+    --shadow: 0 4px 0 rgba(90, 70, 50, 0.12);
+    --radius: 22px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Hiragino Maru Gothic ProN", "BIZ UDGothic", "Yu Gothic", "Meiryo", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overscroll-behavior: none;
+    touch-action: manipulation;
+  }
+  button { font-family: inherit; color: inherit; border: none; background: none; cursor: pointer; }
+
+  .app {
+    max-width: 760px;
+    margin: 0 auto;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 14px 110px;
+  }
+
+  /* ===== ヘッダー（キャラクター） ===== */
+  .header {
+    background: linear-gradient(135deg, #ffe3ec, #fff4d6);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .chara-wrap {
+    flex-shrink: 0;
+    width: 96px;
+    height: 96px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .chara {
+    width: 92px;
+    height: 92px;
+    transition: transform 0.3s;
+  }
+  .chara.happy { animation: bounce 0.6s ease 2; }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0) scale(1); }
+    30% { transform: translateY(-14px) scale(1.05); }
+    60% { transform: translateY(0) scale(0.97); }
+  }
+  .speech {
+    background: #fff;
+    border-radius: 18px;
+    padding: 10px 14px;
+    font-size: 15px;
+    font-weight: bold;
+    line-height: 1.5;
+    position: relative;
+    flex: 1;
+    box-shadow: 0 2px 0 rgba(90,70,50,0.08);
+  }
+  .speech::before {
+    content: "";
+    position: absolute;
+    left: -8px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 8px solid transparent;
+    border-right-color: #fff;
+    border-left: none;
+  }
+  .level-tag {
+    display: inline-block;
+    background: var(--yellow);
+    border-radius: 999px;
+    font-size: 11px;
+    padding: 2px 10px;
+    margin-top: 6px;
+    color: #7a5c00;
+  }
+
+  /* ===== スター表示 ===== */
+  .star-bar {
+    margin-top: 12px;
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .star-count {
+    font-size: 22px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .star-count .num { color: var(--pink-dark); font-size: 26px; }
+  .level-progress { flex: 1; }
+  .level-progress .label { font-size: 12px; color: var(--text-light); margin-bottom: 4px; }
+  .bar-outer {
+    height: 16px;
+    background: #f0e6d8;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .bar-inner {
+    height: 100%;
+    background: linear-gradient(90deg, var(--yellow), var(--orange));
+    border-radius: 999px;
+    width: 0%;
+    transition: width 0.6s cubic-bezier(.34,1.56,.64,1);
+  }
+
+  /* ===== 日にち選択 ===== */
+  .date-nav {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .date-arrow {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background: var(--card);
+    box-shadow: var(--shadow);
+    font-size: 22px;
+    font-weight: bold;
+    color: var(--pink-dark);
+    flex-shrink: 0;
+  }
+  .date-arrow:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(90,70,50,0.12); }
+  .week-strip {
+    flex: 1;
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 4px 2px;
+  }
+  .week-strip::-webkit-scrollbar { display: none; }
+  .day-chip {
+    flex: 1;
+    min-width: 58px;
+    background: var(--card);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 8px 4px;
+    text-align: center;
+    border: 3px solid transparent;
+    transition: transform 0.15s;
+  }
+  .day-chip .dow { font-size: 12px; color: var(--text-light); }
+  .day-chip .dnum { font-size: 20px; font-weight: bold; }
+  .day-chip .dot { font-size: 10px; height: 14px; line-height: 14px; }
+  .day-chip.selected {
+    border-color: var(--pink);
+    background: #fff0f5;
+    transform: scale(1.06);
+  }
+  .day-chip.today .dow { color: var(--pink-dark); font-weight: bold; }
+  .day-chip.sat .dow { color: #4a90d9; }
+  .day-chip.sun .dow { color: #e05a5a; }
+
+  /* ===== 今日の見出し ===== */
+  .day-heading {
+    margin-top: 16px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 0 4px;
+  }
+  .day-heading h2 { font-size: 20px; }
+  .day-heading .done-count { font-size: 14px; color: var(--text-light); font-weight: bold; }
+
+  .day-progress {
+    margin-top: 8px;
+    background: var(--card);
+    border-radius: 999px;
+    box-shadow: var(--shadow);
+    padding: 6px;
+  }
+  .day-progress .bar-outer { height: 20px; }
+  .day-progress .bar-inner { background: linear-gradient(90deg, #a8e063, var(--green)); }
+
+  /* ===== タスクリスト ===== */
+  .task-list {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .task-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    border-left: 10px solid var(--blue);
+    animation: slidein 0.3s ease;
+    position: relative;
+  }
+  @keyframes slidein {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .task-card.done {
+    background: #f2fbe9;
+    border-left-color: var(--green);
+  }
+  .task-card.done .task-name { text-decoration: line-through; color: var(--text-light); }
+  .task-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 16px;
+    font-size: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5efe4;
+    flex-shrink: 0;
+  }
+  .task-info { flex: 1; min-width: 0; }
+  .task-time {
+    font-size: 13px;
+    font-weight: bold;
+    color: #fff;
+    background: var(--orange);
+    display: inline-block;
+    border-radius: 999px;
+    padding: 2px 10px;
+    margin-bottom: 4px;
+  }
+  .task-time.no-time { background: #cbbfa9; }
+  .task-name { font-size: 18px; font-weight: bold; word-break: break-word; }
+  .check-btn {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #f5efe4;
+    border: 3px dashed #d8c9ae;
+    font-size: 30px;
+    flex-shrink: 0;
+    transition: transform 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .check-btn:active { transform: scale(0.9); }
+  .task-card.done .check-btn {
+    background: var(--green);
+    border: 3px solid var(--green-dark);
+    animation: pop 0.4s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes pop {
+    0% { transform: scale(0.4); }
+    70% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+  .del-btn {
+    position: absolute;
+    top: -8px;
+    right: -6px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #f0e6d8;
+    color: var(--text-light);
+    font-size: 16px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 0 rgba(90,70,50,0.12);
+  }
+  body.edit-mode .del-btn { display: flex; }
+  body.edit-mode .task-card { animation: wiggle 0.4s infinite; }
+  @keyframes wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(0.6deg); }
+    75% { transform: rotate(-0.6deg); }
+  }
+
+  .empty-msg {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-light);
+    font-size: 16px;
+    font-weight: bold;
+    line-height: 2;
+  }
+  .empty-msg .big { font-size: 44px; }
+
+  /* ===== 下部ボタン ===== */
+  .bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+    background: linear-gradient(to top, var(--bg) 70%, transparent);
+    pointer-events: none;
+  }
+  .bottom-bar > * { pointer-events: auto; }
+  .add-btn {
+    background: var(--pink);
+    color: #fff;
+    font-size: 20px;
+    font-weight: bold;
+    border-radius: 999px;
+    padding: 16px 34px;
+    box-shadow: 0 5px 0 var(--pink-dark);
+    transition: transform 0.15s;
+  }
+  .add-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--pink-dark); }
+  .edit-btn {
+    background: var(--card);
+    font-size: 15px;
+    font-weight: bold;
+    border-radius: 999px;
+    padding: 16px 20px;
+    box-shadow: var(--shadow);
+    color: var(--text-light);
+  }
+  body.edit-mode .edit-btn { background: var(--yellow); color: #7a5c00; }
+
+  /* ===== モーダル ===== */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(90, 70, 50, 0.45);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 50;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg);
+    width: 100%;
+    max-width: 760px;
+    max-height: 92vh;
+    overflow-y: auto;
+    border-radius: 28px 28px 0 0;
+    padding: 20px 20px calc(24px + env(safe-area-inset-bottom));
+    animation: slideup 0.3s cubic-bezier(.34,1.3,.64,1);
+  }
+  @keyframes slideup {
+    from { transform: translateY(60%); }
+    to { transform: translateY(0); }
+  }
+  .modal h3 { font-size: 20px; text-align: center; margin-bottom: 16px; }
+  .form-label { font-size: 15px; font-weight: bold; margin: 16px 0 8px; display: block; }
+  .chip-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    background: var(--card);
+    border-radius: 999px;
+    padding: 10px 16px;
+    font-size: 16px;
+    font-weight: bold;
+    box-shadow: var(--shadow);
+    border: 3px solid transparent;
+  }
+  .chip.selected { border-color: var(--pink); background: #fff0f5; }
+  .icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+    gap: 8px;
+  }
+  .icon-choice {
+    background: var(--card);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    font-size: 30px;
+    padding: 10px 0 4px;
+    text-align: center;
+    border: 3px solid transparent;
+  }
+  .icon-choice .icon-label { font-size: 10px; color: var(--text-light); display: block; }
+  .icon-choice.selected { border-color: var(--pink); background: #fff0f5; }
+  .text-input, .time-input, .date-input {
+    width: 100%;
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--text);
+    background: var(--card);
+    border: 3px solid #eadfce;
+    border-radius: 16px;
+    padding: 14px;
+    outline: none;
+  }
+  .text-input:focus, .time-input:focus, .date-input:focus { border-color: var(--pink); }
+  .time-row { display: flex; gap: 8px; align-items: center; }
+  .time-row .time-input { flex: 1; }
+  .time-clear {
+    background: var(--card);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 12px 14px;
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--text-light);
+    white-space: nowrap;
+  }
+  .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
+  .btn-cancel {
+    flex: 1;
+    background: var(--card);
+    border-radius: 999px;
+    padding: 16px;
+    font-size: 17px;
+    font-weight: bold;
+    color: var(--text-light);
+    box-shadow: var(--shadow);
+  }
+  .btn-save {
+    flex: 2;
+    background: var(--green);
+    color: #fff;
+    border-radius: 999px;
+    padding: 16px;
+    font-size: 19px;
+    font-weight: bold;
+    box-shadow: 0 5px 0 var(--green-dark);
+  }
+  .btn-save:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--green-dark); }
+  .btn-save:disabled { opacity: 0.4; }
+
+  /* ===== おいわい ===== */
+  .celebrate-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(255, 240, 245, 0.92);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+    padding: 24px;
+  }
+  .celebrate-overlay.open { display: flex; }
+  .celebrate-chara { width: 160px; height: 160px; animation: bounce 0.7s ease infinite; }
+  .celebrate-title { font-size: 34px; font-weight: bold; color: var(--pink-dark); }
+  .celebrate-sub { font-size: 18px; font-weight: bold; line-height: 1.8; }
+  .celebrate-close {
+    margin-top: 12px;
+    background: var(--pink);
+    color: #fff;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 999px;
+    padding: 14px 40px;
+    box-shadow: 0 5px 0 var(--pink-dark);
+  }
+
+  /* 紙吹雪 */
+  .confetti {
+    position: fixed;
+    top: -20px;
+    font-size: 22px;
+    z-index: 99;
+    pointer-events: none;
+    animation: fall linear forwards;
+  }
+  @keyframes fall {
+    to { transform: translateY(110vh) rotate(720deg); opacity: 0.6; }
+  }
+
+  /* +1 ほし */
+  .fly-star {
+    position: fixed;
+    font-size: 28px;
+    font-weight: bold;
+    color: var(--pink-dark);
+    z-index: 99;
+    pointer-events: none;
+    animation: flyup 0.9s ease forwards;
+  }
+  @keyframes flyup {
+    from { transform: translateY(0) scale(1); opacity: 1; }
+    to { transform: translateY(-90px) scale(1.4); opacity: 0; }
+  }
+
+  @media (min-width: 600px) {
+    .chara-wrap { width: 120px; height: 120px; }
+    .chara { width: 116px; height: 116px; }
+    .speech { font-size: 17px; }
+    .task-name { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- キャラクター -->
+  <div class="header">
+    <div class="chara-wrap"><svg id="chara" class="chara" viewBox="0 0 120 120"></svg></div>
+    <div class="speech">
+      <div id="speech-text">きょうも いっしょに がんばろう！</div>
+      <span class="level-tag" id="level-tag">レベル1 たまごモモ</span>
+    </div>
+  </div>
+
+  <!-- ほし＆レベル -->
+  <div class="star-bar">
+    <div class="star-count">⭐ <span class="num" id="star-num">0</span> こ</div>
+    <div class="level-progress">
+      <div class="label" id="level-label">つぎのレベルまで あと 5こ</div>
+      <div class="bar-outer"><div class="bar-inner" id="level-bar"></div></div>
+    </div>
+  </div>
+
+  <!-- 日にちナビ -->
+  <div class="date-nav">
+    <button class="date-arrow" id="prev-week" aria-label="まえのしゅう">◀</button>
+    <div class="week-strip" id="week-strip"></div>
+    <button class="date-arrow" id="next-week" aria-label="つぎのしゅう">▶</button>
+  </div>
+
+  <!-- 見出し＆きょうのすすみぐあい -->
+  <div class="day-heading">
+    <h2 id="day-title">きょうの かだい</h2>
+    <span class="done-count" id="done-count"></span>
+  </div>
+  <div class="day-progress">
+    <div class="bar-outer"><div class="bar-inner" id="day-bar"></div></div>
+  </div>
+
+  <!-- かだいリスト -->
+  <div class="task-list" id="task-list"></div>
+</div>
+
+<!-- 下部ボタン -->
+<div class="bottom-bar">
+  <button class="edit-btn" id="edit-btn">✏️ へんしゅう</button>
+  <button class="add-btn" id="add-btn">＋ かだいを ふやす</button>
+</div>
+
+<!-- 追加モーダル -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h3>あたらしい かだい</h3>
+
+    <label class="form-label">① なにを やる？（えらんでね）</label>
+    <div class="chip-grid" id="preset-chips"></div>
+
+    <label class="form-label">じぶんで かくときは ここ ✍️</label>
+    <input type="text" class="text-input" id="task-name-input" maxlength="30" placeholder="れい：かんじドリル 2ページ">
+
+    <label class="form-label">② マークを えらぼう</label>
+    <div class="icon-grid" id="icon-grid"></div>
+
+    <label class="form-label">③ いつ やる？</label>
+    <input type="date" class="date-input" id="task-date-input">
+
+    <label class="form-label">④ なんじから？（なくても OK）</label>
+    <div class="time-row">
+      <input type="time" class="time-input" id="task-time-input">
+      <button class="time-clear" id="time-clear">じかんなし</button>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" id="btn-cancel">やめる</button>
+      <button class="btn-save" id="btn-save">これで きめた！</button>
+    </div>
+  </div>
+</div>
+
+<!-- ぜんぶできた おいわい -->
+<div class="celebrate-overlay" id="celebrate-overlay">
+  <svg class="celebrate-chara" viewBox="0 0 120 120" id="celebrate-chara"></svg>
+  <div class="celebrate-title" id="celebrate-title">🎉 ぜんぶ できた！ 🎉</div>
+  <div class="celebrate-sub" id="celebrate-sub">きょうの かだいを ぜんぶ クリア！<br>すごい！ えらい！ かっこいい！</div>
+  <button class="celebrate-close" id="celebrate-close">やったー！</button>
+</div>
+
+<script>
+"use strict";
+
+/* ================= データ ================= */
+const STORE_KEY = "studyschedule-v1";
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) { /* こわれたデータは無視 */ }
+  return { tasks: [], stars: 0, celebratedDates: [] };
+}
+function saveState() {
+  localStorage.setItem(STORE_KEY, JSON.stringify(state));
+}
+const state = loadState();
+
+/* ================= 日付ユーティリティ ================= */
+const DOW = ["にち", "げつ", "か", "すい", "もく", "きん", "ど"];
+function fmtDate(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${dd}`;
+}
+function parseDate(s) {
+  const [y, m, d] = s.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+const todayStr = fmtDate(new Date());
+let selectedDate = todayStr;
+let weekOffset = 0; // 0 = 今週
+
+/* ================= キャラクター ================= */
+/* レベルごとに育つ「モモ」 */
+const LEVELS = [
+  { need: 0,   name: "たまごモモ",   kind: "egg" },
+  { need: 5,   name: "ひよこモモ",   kind: "chick" },
+  { need: 15,  name: "こねこモモ",   kind: "cat" },
+  { need: 30,  name: "リボンモモ",   kind: "cat-ribbon" },
+  { need: 50,  name: "まほうモモ",   kind: "cat-wizard" },
+  { need: 80,  name: "おうかんモモ", kind: "cat-king" },
+  { need: 120, name: "スターモモ",   kind: "cat-star" },
+];
+function currentLevel() {
+  let lv = 0;
+  for (let i = 0; i < LEVELS.length; i++) {
+    if (state.stars >= LEVELS[i].need) lv = i;
+  }
+  return lv;
+}
+
+function charaSVG(kind, mood) {
+  // mood: "normal" | "happy"
+  const mouth = mood === "happy"
+    ? '<path d="M50 72 Q60 82 70 72" stroke="#b25959" stroke-width="3" fill="#e88" stroke-linecap="round"/>'
+    : '<path d="M52 73 Q60 79 68 73" stroke="#b25959" stroke-width="3" fill="none" stroke-linecap="round"/>';
+  const eyes = mood === "happy"
+    ? '<path d="M38 56 Q43 50 48 56" stroke="#5a4632" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M72 56 Q77 50 82 56" stroke="#5a4632" stroke-width="3.5" fill="none" stroke-linecap="round"/>'
+    : '<circle cx="43" cy="57" r="4.5" fill="#5a4632"/><circle cx="77" cy="57" r="4.5" fill="#5a4632"/><circle cx="44.5" cy="55.5" r="1.5" fill="#fff"/><circle cx="78.5" cy="55.5" r="1.5" fill="#fff"/>';
+  const cheeks = '<ellipse cx="34" cy="66" rx="6" ry="4" fill="#ffb3c1" opacity="0.8"/><ellipse cx="86" cy="66" rx="6" ry="4" fill="#ffb3c1" opacity="0.8"/>';
+
+  if (kind === "egg") {
+    return `
+      <ellipse cx="60" cy="68" rx="34" ry="40" fill="#fff6e9" stroke="#eadfce" stroke-width="3"/>
+      <path d="M30 70 L40 62 L48 70 L56 62 L64 70 L72 62 L80 70 L90 62" stroke="#ffd166" stroke-width="3" fill="none" stroke-linecap="round"/>
+      ${eyes}${cheeks}${mouth}`;
+  }
+  const earsCat = '<path d="M32 34 L38 12 L52 28 Z" fill="#ffc9d6" stroke="#f4a0b5" stroke-width="2"/><path d="M88 34 L82 12 L68 28 Z" fill="#ffc9d6" stroke="#f4a0b5" stroke-width="2"/>';
+  const headCat = '<circle cx="60" cy="60" r="36" fill="#ffe0e9" stroke="#f4a0b5" stroke-width="3"/>';
+  const whiskers = '<path d="M20 60 L32 62 M20 68 L32 67" stroke="#d8a0b0" stroke-width="2" stroke-linecap="round"/><path d="M100 60 L88 62 M100 68 L88 67" stroke="#d8a0b0" stroke-width="2" stroke-linecap="round"/>';
+
+  if (kind === "chick") {
+    return `
+      <circle cx="60" cy="62" r="36" fill="#ffef9e" stroke="#f0d060" stroke-width="3"/>
+      <path d="M52 26 Q60 16 68 26" stroke="#f0d060" stroke-width="3" fill="none"/>
+      <path d="M55 66 L60 72 L65 66 Z" fill="#ffb347"/>
+      ${eyes}${cheeks}`;
+  }
+  let extra = "";
+  if (kind === "cat-ribbon") {
+    extra = '<path d="M60 20 L48 12 L50 24 Z" fill="#ff8fab"/><path d="M60 20 L72 12 L70 24 Z" fill="#ff8fab"/><circle cx="60" cy="20" r="5" fill="#f4638a"/>';
+  } else if (kind === "cat-wizard") {
+    extra = '<path d="M60 2 L42 30 L78 30 Z" fill="#c39bd3" stroke="#a678c0" stroke-width="2"/><circle cx="60" cy="6" r="4" fill="#ffd166"/>';
+  } else if (kind === "cat-king") {
+    extra = '<path d="M44 20 L44 8 L52 16 L60 4 L68 16 L76 8 L76 20 Z" fill="#ffd166" stroke="#e0b040" stroke-width="2"/>';
+  } else if (kind === "cat-star") {
+    extra = '<path d="M60 0 L64 10 L75 10 L66 17 L70 28 L60 21 L50 28 L54 17 L45 10 L56 10 Z" fill="#ffd166" stroke="#e0b040" stroke-width="1.5"/>';
+  }
+  return `${earsCat}${headCat}${extra}${eyes}${cheeks}${mouth}${whiskers}
+    <path d="M56 64 L60 68 L64 64" stroke="#e88" stroke-width="2.5" fill="#ffb3c1" stroke-linejoin="round"/>`;
+}
+
+function renderChara(mood = "normal") {
+  const lv = currentLevel();
+  document.getElementById("chara").innerHTML = charaSVG(LEVELS[lv].kind, mood);
+  document.getElementById("level-tag").textContent = `レベル${lv + 1} ${LEVELS[lv].name}`;
+}
+
+/* ================= ほし＆レベル表示 ================= */
+function renderStars(animate) {
+  const lv = currentLevel();
+  document.getElementById("star-num").textContent = state.stars;
+  const next = LEVELS[lv + 1];
+  const bar = document.getElementById("level-bar");
+  const label = document.getElementById("level-label");
+  if (next) {
+    const prev = LEVELS[lv].need;
+    const pct = ((state.stars - prev) / (next.need - prev)) * 100;
+    bar.style.width = pct + "%";
+    label.textContent = `つぎのレベルまで あと ${next.need - state.stars}こ`;
+  } else {
+    bar.style.width = "100%";
+    label.textContent = "さいこうレベル！ すごすぎる！";
+  }
+}
+
+/* ================= セリフ ================= */
+const CHEERS = [
+  "やったね！ すごい！",
+  "その ちょうし！",
+  "てんさい かも！？",
+  "がんばったね！ えらい！",
+  "ピカピカの ほしを ゲット！",
+  "モモも うれしいよ〜！",
+  "かっこいい！ つぎも いこう！",
+];
+const GREETINGS = [
+  "きょうも いっしょに がんばろう！",
+  "どの かだいから やる？",
+  "モモは きみを おうえんしてるよ！",
+];
+function say(text) {
+  document.getElementById("speech-text").textContent = text;
+}
+
+/* ================= 週ストリップ ================= */
+function renderWeek() {
+  const strip = document.getElementById("week-strip");
+  strip.innerHTML = "";
+  const base = new Date();
+  base.setDate(base.getDate() - base.getDay() + weekOffset * 7); // 日曜はじまり
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(base);
+    d.setDate(base.getDate() + i);
+    const ds = fmtDate(d);
+    const chip = document.createElement("button");
+    chip.className = "day-chip";
+    if (i === 0) chip.classList.add("sun");
+    if (i === 6) chip.classList.add("sat");
+    if (ds === todayStr) chip.classList.add("today");
+    if (ds === selectedDate) chip.classList.add("selected");
+    const dayTasks = state.tasks.filter(t => t.date === ds);
+    const doneAll = dayTasks.length > 0 && dayTasks.every(t => t.done);
+    const dot = dayTasks.length === 0 ? "" : doneAll ? "⭐" : "🔵";
+    chip.innerHTML = `<div class="dow">${DOW[d.getDay()]}</div><div class="dnum">${d.getDate()}</div><div class="dot">${dot}</div>`;
+    chip.addEventListener("click", () => { selectedDate = ds; render(); });
+    strip.appendChild(chip);
+  }
+}
+
+/* ================= タスクリスト ================= */
+function tasksOf(dateStr) {
+  return state.tasks
+    .filter(t => t.date === dateStr)
+    .sort((a, b) => (a.time || "99:99").localeCompare(b.time || "99:99"));
+}
+
+function renderTasks() {
+  const list = document.getElementById("task-list");
+  list.innerHTML = "";
+  const tasks = tasksOf(selectedDate);
+
+  const d = parseDate(selectedDate);
+  const title = selectedDate === todayStr
+    ? "きょうの かだい"
+    : `${d.getMonth() + 1}がつ${d.getDate()}にち（${DOW[d.getDay()]}）の かだい`;
+  document.getElementById("day-title").textContent = title;
+
+  const doneN = tasks.filter(t => t.done).length;
+  document.getElementById("done-count").textContent =
+    tasks.length ? `${doneN} / ${tasks.length} できた` : "";
+  document.getElementById("day-bar").style.width =
+    tasks.length ? (doneN / tasks.length) * 100 + "%" : "0%";
+
+  if (tasks.length === 0) {
+    list.innerHTML = `<div class="empty-msg"><div class="big">🌱</div>まだ かだいが ないよ<br>「＋ かだいを ふやす」で つくってみよう！</div>`;
+    return;
+  }
+
+  for (const t of tasks) {
+    const card = document.createElement("div");
+    card.className = "task-card" + (t.done ? " done" : "");
+    const timeLabel = t.time
+      ? `${parseInt(t.time.split(":")[0], 10)}じ${t.time.split(":")[1] !== "00" ? parseInt(t.time.split(":")[1], 10) + "ふん" : ""}から`
+      : "いつでも";
+    card.innerHTML = `
+      <div class="task-icon">${t.icon}</div>
+      <div class="task-info">
+        <span class="task-time ${t.time ? "" : "no-time"}">🕐 ${timeLabel}</span>
+        <div class="task-name">${escapeHtml(t.name)}</div>
+      </div>
+      <button class="check-btn" aria-label="できた">${t.done ? "⭐" : ""}</button>
+      <button class="del-btn" aria-label="けす">✖</button>
+    `;
+    card.querySelector(".check-btn").addEventListener("click", (ev) => toggleTask(t.id, ev));
+    card.querySelector(".del-btn").addEventListener("click", () => deleteTask(t.id));
+    list.appendChild(card);
+  }
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+/* ================= できた！ ================= */
+function toggleTask(id, ev) {
+  const t = state.tasks.find(x => x.id === id);
+  if (!t) return;
+  if (!t.done) {
+    t.done = true;
+    state.stars += 1;
+    saveState();
+    flyStar(ev.clientX, ev.clientY);
+    confettiBurst(14);
+    say(CHEERS[Math.floor(Math.random() * CHEERS.length)]);
+    renderChara("happy");
+    setTimeout(() => renderChara("normal"), 1500);
+    render();
+    // その日ぜんぶ完了なら おいわい
+    const tasks = tasksOf(selectedDate);
+    if (tasks.every(x => x.done) && !state.celebratedDates.includes(selectedDate)) {
+      state.celebratedDates.push(selectedDate);
+      saveState();
+      setTimeout(openCelebrate, 500);
+    }
+  } else {
+    // まちがえてタップしたとき用：もどすと ほしも 1こ もどる
+    t.done = false;
+    state.stars = Math.max(0, state.stars - 1);
+    const idx = state.celebratedDates.indexOf(selectedDate);
+    if (idx >= 0) state.celebratedDates.splice(idx, 1);
+    saveState();
+    say("あれれ？ もういちど がんばろう！");
+    render();
+  }
+}
+
+function deleteTask(id) {
+  const t = state.tasks.find(x => x.id === id);
+  if (!t) return;
+  if (!confirm(`「${t.name}」を けしても いい？`)) return;
+  state.tasks = state.tasks.filter(x => x.id !== id);
+  saveState();
+  render();
+}
+
+/* ================= エフェクト ================= */
+function confettiBurst(n) {
+  const emojis = ["🎉", "✨", "⭐", "💖", "🌈", "🍀"];
+  for (let i = 0; i < n; i++) {
+    const el = document.createElement("div");
+    el.className = "confetti";
+    el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    el.style.left = Math.random() * 100 + "vw";
+    el.style.animationDuration = 1.2 + Math.random() * 1.4 + "s";
+    el.style.fontSize = 16 + Math.random() * 16 + "px";
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  }
+}
+function flyStar(x, y) {
+  const el = document.createElement("div");
+  el.className = "fly-star";
+  el.textContent = "⭐ +1";
+  el.style.left = (x - 30) + "px";
+  el.style.top = (y - 20) + "px";
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1000);
+}
+
+/* ================= おいわい ================= */
+function openCelebrate() {
+  const lv = currentLevel();
+  document.getElementById("celebrate-chara").innerHTML = charaSVG(LEVELS[lv].kind, "happy");
+  document.getElementById("celebrate-overlay").classList.add("open");
+  confettiBurst(40);
+}
+document.getElementById("celebrate-close").addEventListener("click", () => {
+  document.getElementById("celebrate-overlay").classList.remove("open");
+});
+
+/* ================= 追加モーダル ================= */
+const PRESETS = [
+  { name: "こくごの しゅくだい", icon: "📖" },
+  { name: "さんすうの しゅくだい", icon: "🔢" },
+  { name: "かんじの れんしゅう", icon: "✏️" },
+  { name: "けいさんドリル", icon: "🧮" },
+  { name: "おんどく", icon: "🗣️" },
+  { name: "にっき を かく", icon: "📔" },
+  { name: "ピアノの れんしゅう", icon: "🎹" },
+  { name: "ほんを よむ", icon: "📚" },
+];
+const ICONS = [
+  { icon: "📖", label: "こくご" },
+  { icon: "🔢", label: "さんすう" },
+  { icon: "✏️", label: "かく" },
+  { icon: "📚", label: "どくしょ" },
+  { icon: "🗣️", label: "おんどく" },
+  { icon: "🎹", label: "おんがく" },
+  { icon: "🏃", label: "うんどう" },
+  { icon: "🎨", label: "ずこう" },
+  { icon: "🔬", label: "りか" },
+  { icon: "🌏", label: "せいかつ" },
+  { icon: "💻", label: "パソコン" },
+  { icon: "🧹", label: "おてつだい" },
+];
+let modalIcon = ICONS[0].icon;
+
+function buildModalChoices() {
+  const presetWrap = document.getElementById("preset-chips");
+  presetWrap.innerHTML = "";
+  for (const p of PRESETS) {
+    const b = document.createElement("button");
+    b.className = "chip";
+    b.textContent = `${p.icon} ${p.name}`;
+    b.addEventListener("click", () => {
+      document.getElementById("task-name-input").value = p.name;
+      modalIcon = p.icon;
+      updateModalSelection();
+    });
+    presetWrap.appendChild(b);
+  }
+  const iconWrap = document.getElementById("icon-grid");
+  iconWrap.innerHTML = "";
+  for (const ic of ICONS) {
+    const b = document.createElement("button");
+    b.className = "icon-choice";
+    b.dataset.icon = ic.icon;
+    b.innerHTML = `${ic.icon}<span class="icon-label">${ic.label}</span>`;
+    b.addEventListener("click", () => { modalIcon = ic.icon; updateModalSelection(); });
+    iconWrap.appendChild(b);
+  }
+}
+function updateModalSelection() {
+  document.querySelectorAll(".icon-choice").forEach(el => {
+    el.classList.toggle("selected", el.dataset.icon === modalIcon);
+  });
+  const name = document.getElementById("task-name-input").value.trim();
+  document.querySelectorAll("#preset-chips .chip").forEach(el => {
+    el.classList.toggle("selected", el.textContent.endsWith(name) && name !== "");
+  });
+}
+
+function openModal() {
+  document.getElementById("task-name-input").value = "";
+  document.getElementById("task-date-input").value = selectedDate;
+  document.getElementById("task-time-input").value = "";
+  modalIcon = ICONS[0].icon;
+  updateModalSelection();
+  document.getElementById("modal-overlay").classList.add("open");
+}
+function closeModal() {
+  document.getElementById("modal-overlay").classList.remove("open");
+}
+
+document.getElementById("add-btn").addEventListener("click", openModal);
+document.getElementById("btn-cancel").addEventListener("click", closeModal);
+document.getElementById("modal-overlay").addEventListener("click", (e) => {
+  if (e.target === document.getElementById("modal-overlay")) closeModal();
+});
+document.getElementById("time-clear").addEventListener("click", () => {
+  document.getElementById("task-time-input").value = "";
+});
+document.getElementById("task-name-input").addEventListener("input", updateModalSelection);
+
+document.getElementById("btn-save").addEventListener("click", () => {
+  const name = document.getElementById("task-name-input").value.trim();
+  const date = document.getElementById("task-date-input").value;
+  const time = document.getElementById("task-time-input").value;
+  if (!name) {
+    say("かだいの なまえを えらんでね！");
+    document.getElementById("task-name-input").focus();
+    return;
+  }
+  if (!date) return;
+  state.tasks.push({
+    id: Date.now() + "-" + Math.random().toString(36).slice(2, 7),
+    name, icon: modalIcon, date, time: time || null, done: false,
+  });
+  // 未完了に戻るのでその日のおいわい記録をリセット
+  const idx = state.celebratedDates.indexOf(date);
+  if (idx >= 0) state.celebratedDates.splice(idx, 1);
+  saveState();
+  selectedDate = date;
+  // 選んだ日が表示中の週になければ週を合わせる
+  const target = parseDate(date);
+  const base = new Date();
+  base.setDate(base.getDate() - base.getDay());
+  base.setHours(0, 0, 0, 0);
+  weekOffset = Math.floor((target - base) / (7 * 24 * 3600 * 1000));
+  closeModal();
+  say("あたらしい かだいが できたよ！");
+  render();
+});
+
+/* ================= へんしゅうモード ================= */
+document.getElementById("edit-btn").addEventListener("click", () => {
+  document.body.classList.toggle("edit-mode");
+});
+
+/* ================= 週送り ================= */
+document.getElementById("prev-week").addEventListener("click", () => { weekOffset--; renderWeek(); });
+document.getElementById("next-week").addEventListener("click", () => { weekOffset++; renderWeek(); });
+
+/* ================= 全体描画 ================= */
+function render() {
+  renderChara();
+  renderStars();
+  renderWeek();
+  renderTasks();
+}
+
+buildModalChoices();
+say(GREETINGS[Math.floor(Math.random() * GREETINGS.length)]);
+render();
+</script>
+</body>
+</html>
