@@ -7,27 +7,28 @@
 <title>がんばりスケジュール</title>
 <style>
   :root {
-    --bg: #fdf6ec;
+    --bg: #f4f4f3;
     --card: #ffffff;
-    --pink: #ff8fab;
-    --pink-dark: #f4638a;
-    --yellow: #ffd166;
-    --orange: #ffb347;
-    --green: #7ed957;
-    --green-dark: #5cb85c;
-    --blue: #6ec6ff;
-    --purple: #c39bd3;
-    --text: #5a4632;
-    --text-light: #9c8873;
-    --shadow: 0 4px 0 rgba(90, 70, 50, 0.12);
-    --radius: 22px;
+    --ink: #1f1f1e;
+    --ink-soft: #4a4a48;
+    --muted: #96968f;
+    --line: #e8e8e5;
+    --accent: #222220;
+    --green: #6cb44c;
+    --green-soft: #eef6e9;
+    --gold: #e8a820;
+    --gold-soft: #fdf3dd;
+    --danger: #d05c5c;
+    --shadow: 0 1px 2px rgba(20, 20, 18, 0.05), 0 4px 14px rgba(20, 20, 18, 0.06);
+    --shadow-press: 0 1px 3px rgba(20, 20, 18, 0.08);
+    --radius: 18px;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; }
   body {
     font-family: "Hiragino Maru Gothic ProN", "BIZ UDGothic", "Yu Gothic", "Meiryo", sans-serif;
     background: var(--bg);
-    color: var(--text);
+    color: var(--ink);
     overscroll-behavior: none;
     touch-action: manipulation;
   }
@@ -39,20 +40,19 @@
     min-height: 100%;
     display: flex;
     flex-direction: column;
-    padding: 12px 14px 110px;
+    padding: 16px 16px 112px;
   }
 
   /* ===== ヘッダー（キャラクター） ===== */
   .header {
-    background: linear-gradient(135deg, #ffe3ec, #fff4d6);
+    background: var(--card);
+    border: 1px solid var(--line);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
-    padding: 14px 18px;
+    padding: 16px 18px;
     display: flex;
     align-items: center;
-    gap: 14px;
-    position: relative;
-    overflow: hidden;
+    gap: 16px;
   }
   .chara-wrap {
     flex-shrink: 0;
@@ -61,80 +61,71 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    background: var(--bg);
+    border-radius: 50%;
   }
   .chara {
-    width: 92px;
-    height: 92px;
+    width: 84px;
+    height: 84px;
     transition: transform 0.3s;
   }
   .chara.happy { animation: bounce 0.6s ease 2; }
   @keyframes bounce {
     0%, 100% { transform: translateY(0) scale(1); }
-    30% { transform: translateY(-14px) scale(1.05); }
+    30% { transform: translateY(-12px) scale(1.05); }
     60% { transform: translateY(0) scale(0.97); }
   }
-  .speech {
-    background: #fff;
-    border-radius: 18px;
-    padding: 10px 14px;
+  .speech { flex: 1; min-width: 0; }
+  .speech-text {
     font-size: 15px;
     font-weight: bold;
-    line-height: 1.5;
-    position: relative;
-    flex: 1;
-    box-shadow: 0 2px 0 rgba(90,70,50,0.08);
-  }
-  .speech::before {
-    content: "";
-    position: absolute;
-    left: -8px;
-    top: 50%;
-    transform: translateY(-50%);
-    border: 8px solid transparent;
-    border-right-color: #fff;
-    border-left: none;
+    line-height: 1.6;
+    color: var(--ink-soft);
   }
   .level-tag {
     display: inline-block;
-    background: var(--yellow);
+    background: var(--gold-soft);
+    color: #9a6c08;
     border-radius: 999px;
     font-size: 11px;
-    padding: 2px 10px;
-    margin-top: 6px;
-    color: #7a5c00;
+    font-weight: bold;
+    padding: 3px 12px;
+    margin-top: 8px;
+    letter-spacing: 0.03em;
   }
 
   /* ===== スター表示 ===== */
   .star-bar {
     margin-top: 12px;
     background: var(--card);
+    border: 1px solid var(--line);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
-    padding: 12px 16px;
+    padding: 14px 18px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 16px;
   }
   .star-count {
-    font-size: 22px;
+    font-size: 18px;
     font-weight: bold;
     display: flex;
-    align-items: center;
-    gap: 6px;
+    align-items: baseline;
+    gap: 5px;
     white-space: nowrap;
   }
-  .star-count .num { color: var(--pink-dark); font-size: 26px; }
+  .star-count .num { font-size: 26px; color: var(--gold); }
   .level-progress { flex: 1; }
-  .level-progress .label { font-size: 12px; color: var(--text-light); margin-bottom: 4px; }
+  .level-progress .label { font-size: 12px; color: var(--muted); margin-bottom: 6px; font-weight: bold; }
   .bar-outer {
-    height: 16px;
-    background: #f0e6d8;
+    height: 10px;
+    background: #ececea;
     border-radius: 999px;
     overflow: hidden;
   }
   .bar-inner {
     height: 100%;
-    background: linear-gradient(90deg, var(--yellow), var(--orange));
+    background: var(--gold);
     border-radius: 999px;
     width: 0%;
     transition: width 0.6s cubic-bezier(.34,1.56,.64,1);
@@ -142,92 +133,88 @@
 
   /* ===== 日にち選択 ===== */
   .date-nav {
-    margin-top: 14px;
+    margin-top: 18px;
     display: flex;
     align-items: center;
     gap: 8px;
   }
   .date-arrow {
-    width: 52px;
-    height: 52px;
-    border-radius: 16px;
+    width: 48px;
+    height: 60px;
+    border-radius: 14px;
     background: var(--card);
+    border: 1px solid var(--line);
     box-shadow: var(--shadow);
-    font-size: 22px;
-    font-weight: bold;
-    color: var(--pink-dark);
+    font-size: 16px;
+    color: var(--muted);
     flex-shrink: 0;
+    transition: transform 0.15s;
   }
-  .date-arrow:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(90,70,50,0.12); }
+  .date-arrow:active { transform: scale(0.94); box-shadow: var(--shadow-press); }
   .week-strip {
     flex: 1;
     display: flex;
     gap: 6px;
     overflow-x: auto;
     scrollbar-width: none;
-    padding: 4px 2px;
+    padding: 2px;
   }
   .week-strip::-webkit-scrollbar { display: none; }
   .day-chip {
     flex: 1;
-    min-width: 58px;
+    min-width: 56px;
     background: var(--card);
-    border-radius: 16px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
     box-shadow: var(--shadow);
-    padding: 8px 4px;
+    padding: 9px 4px 6px;
     text-align: center;
-    border: 3px solid transparent;
     transition: transform 0.15s;
   }
-  .day-chip .dow { font-size: 12px; color: var(--text-light); }
-  .day-chip .dnum { font-size: 20px; font-weight: bold; }
-  .day-chip .dot { font-size: 10px; height: 14px; line-height: 14px; }
+  .day-chip .dow { font-size: 11px; color: var(--muted); font-weight: bold; }
+  .day-chip .dnum { font-size: 20px; font-weight: bold; margin-top: 1px; }
+  .day-chip .dot { font-size: 9px; height: 14px; line-height: 14px; }
   .day-chip.selected {
-    border-color: var(--pink);
-    background: #fff0f5;
-    transform: scale(1.06);
+    background: var(--accent);
+    border-color: var(--accent);
+    transform: scale(1.04);
   }
-  .day-chip.today .dow { color: var(--pink-dark); font-weight: bold; }
-  .day-chip.sat .dow { color: #4a90d9; }
-  .day-chip.sun .dow { color: #e05a5a; }
+  .day-chip.selected .dow, .day-chip.selected .dnum { color: #fff; }
+  .day-chip.today:not(.selected) { border-color: var(--ink-soft); }
+  .day-chip.sat:not(.selected) .dow { color: #5b8db8; }
+  .day-chip.sun:not(.selected) .dow { color: #c96f6f; }
 
   /* ===== 今日の見出し ===== */
   .day-heading {
-    margin-top: 16px;
+    margin-top: 22px;
     display: flex;
     align-items: baseline;
     justify-content: space-between;
     padding: 0 4px;
   }
-  .day-heading h2 { font-size: 20px; }
-  .day-heading .done-count { font-size: 14px; color: var(--text-light); font-weight: bold; }
+  .day-heading h2 { font-size: 18px; letter-spacing: 0.02em; }
+  .day-heading .done-count { font-size: 13px; color: var(--muted); font-weight: bold; }
 
-  .day-progress {
-    margin-top: 8px;
-    background: var(--card);
-    border-radius: 999px;
-    box-shadow: var(--shadow);
-    padding: 6px;
-  }
-  .day-progress .bar-outer { height: 20px; }
-  .day-progress .bar-inner { background: linear-gradient(90deg, #a8e063, var(--green)); }
+  .day-progress { margin-top: 10px; padding: 0 4px; }
+  .day-progress .bar-outer { height: 8px; }
+  .day-progress .bar-inner { background: var(--green); }
 
   /* ===== タスクリスト ===== */
   .task-list {
     margin-top: 14px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
   }
   .task-card {
     background: var(--card);
+    border: 1px solid var(--line);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 14px;
-    border-left: 10px solid var(--blue);
+    gap: 14px;
+    padding: 14px 16px;
     animation: slidein 0.3s ease;
     position: relative;
   }
@@ -235,52 +222,51 @@
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
   }
-  .task-card.done {
-    background: #f2fbe9;
-    border-left-color: var(--green);
-  }
-  .task-card.done .task-name { text-decoration: line-through; color: var(--text-light); }
+  .task-card.done { background: #fafaf9; }
+  .task-card.done .task-name { text-decoration: line-through; color: var(--muted); }
+  .task-card.done .task-icon { opacity: 0.5; }
   .task-icon {
-    width: 54px;
-    height: 54px;
-    border-radius: 16px;
-    font-size: 30px;
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    font-size: 26px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f5efe4;
+    background: var(--bg);
     flex-shrink: 0;
   }
   .task-info { flex: 1; min-width: 0; }
   .task-time {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: bold;
-    color: #fff;
-    background: var(--orange);
+    color: var(--ink-soft);
+    background: var(--bg);
+    border: 1px solid var(--line);
     display: inline-block;
     border-radius: 999px;
     padding: 2px 10px;
-    margin-bottom: 4px;
+    margin-bottom: 5px;
   }
-  .task-time.no-time { background: #cbbfa9; }
-  .task-name { font-size: 18px; font-weight: bold; word-break: break-word; }
+  .task-time.no-time { color: var(--muted); }
+  .task-name { font-size: 17px; font-weight: bold; word-break: break-word; line-height: 1.4; }
   .check-btn {
-    width: 64px;
-    height: 64px;
+    width: 58px;
+    height: 58px;
     border-radius: 50%;
-    background: #f5efe4;
-    border: 3px dashed #d8c9ae;
-    font-size: 30px;
+    background: var(--card);
+    border: 2px dashed #d4d4d0;
+    font-size: 26px;
     flex-shrink: 0;
-    transition: transform 0.15s;
+    transition: transform 0.15s, border-color 0.15s;
     display: flex;
     align-items: center;
     justify-content: center;
   }
-  .check-btn:active { transform: scale(0.9); }
+  .check-btn:active { transform: scale(0.9); border-color: var(--green); }
   .task-card.done .check-btn {
-    background: var(--green);
-    border: 3px solid var(--green-dark);
+    background: var(--green-soft);
+    border: 2px solid var(--green);
     animation: pop 0.4s cubic-bezier(.34,1.56,.64,1);
   }
   @keyframes pop {
@@ -292,34 +278,35 @@
     position: absolute;
     top: -8px;
     right: -6px;
-    width: 34px;
-    height: 34px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    background: #f0e6d8;
-    color: var(--text-light);
-    font-size: 16px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    color: var(--danger);
+    font-size: 14px;
     display: none;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 0 rgba(90,70,50,0.12);
+    box-shadow: var(--shadow);
   }
   body.edit-mode .del-btn { display: flex; }
   body.edit-mode .task-card { animation: wiggle 0.4s infinite; }
   @keyframes wiggle {
     0%, 100% { transform: rotate(0deg); }
-    25% { transform: rotate(0.6deg); }
-    75% { transform: rotate(-0.6deg); }
+    25% { transform: rotate(0.5deg); }
+    75% { transform: rotate(-0.5deg); }
   }
 
   .empty-msg {
     text-align: center;
-    padding: 40px 20px;
-    color: var(--text-light);
-    font-size: 16px;
+    padding: 44px 20px;
+    color: var(--muted);
+    font-size: 15px;
     font-weight: bold;
     line-height: 2;
   }
-  .empty-msg .big { font-size: 44px; }
+  .empty-msg .big { font-size: 40px; }
 
   /* ===== 下部ボタン ===== */
   .bottom-bar {
@@ -329,39 +316,41 @@
     right: 0;
     display: flex;
     justify-content: center;
-    gap: 12px;
+    gap: 10px;
     padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
-    background: linear-gradient(to top, var(--bg) 70%, transparent);
+    background: linear-gradient(to top, var(--bg) 65%, transparent);
     pointer-events: none;
   }
   .bottom-bar > * { pointer-events: auto; }
   .add-btn {
-    background: var(--pink);
+    background: var(--accent);
     color: #fff;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: bold;
     border-radius: 999px;
-    padding: 16px 34px;
-    box-shadow: 0 5px 0 var(--pink-dark);
+    padding: 16px 36px;
+    box-shadow: 0 6px 16px rgba(20, 20, 18, 0.28);
     transition: transform 0.15s;
+    letter-spacing: 0.03em;
   }
-  .add-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--pink-dark); }
+  .add-btn:active { transform: scale(0.96); }
   .edit-btn {
     background: var(--card);
-    font-size: 15px;
+    border: 1px solid var(--line);
+    font-size: 14px;
     font-weight: bold;
     border-radius: 999px;
     padding: 16px 20px;
     box-shadow: var(--shadow);
-    color: var(--text-light);
+    color: var(--muted);
   }
-  body.edit-mode .edit-btn { background: var(--yellow); color: #7a5c00; }
+  body.edit-mode .edit-btn { background: var(--ink-soft); border-color: var(--ink-soft); color: #fff; }
 
   /* ===== モーダル ===== */
   .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(90, 70, 50, 0.45);
+    background: rgba(31, 31, 30, 0.5);
     display: none;
     align-items: flex-end;
     justify-content: center;
@@ -374,119 +363,136 @@
     max-width: 760px;
     max-height: 92vh;
     overflow-y: auto;
-    border-radius: 28px 28px 0 0;
-    padding: 20px 20px calc(24px + env(safe-area-inset-bottom));
+    border-radius: 24px 24px 0 0;
+    padding: 22px 20px calc(26px + env(safe-area-inset-bottom));
     animation: slideup 0.3s cubic-bezier(.34,1.3,.64,1);
   }
   @keyframes slideup {
     from { transform: translateY(60%); }
     to { transform: translateY(0); }
   }
-  .modal h3 { font-size: 20px; text-align: center; margin-bottom: 16px; }
-  .form-label { font-size: 15px; font-weight: bold; margin: 16px 0 8px; display: block; }
+  .modal h3 { font-size: 18px; text-align: center; margin-bottom: 6px; letter-spacing: 0.04em; }
+  .modal-handle {
+    width: 40px;
+    height: 4px;
+    background: #d8d8d4;
+    border-radius: 999px;
+    margin: 0 auto 16px;
+  }
+  .form-label {
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--ink-soft);
+    margin: 18px 0 8px;
+    display: block;
+    letter-spacing: 0.03em;
+  }
   .chip-grid { display: flex; flex-wrap: wrap; gap: 8px; }
   .chip {
     background: var(--card);
+    border: 1px solid var(--line);
     border-radius: 999px;
     padding: 10px 16px;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: bold;
     box-shadow: var(--shadow);
-    border: 3px solid transparent;
   }
-  .chip.selected { border-color: var(--pink); background: #fff0f5; }
+  .chip.selected { border-color: var(--accent); background: var(--accent); color: #fff; }
   .icon-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));
     gap: 8px;
   }
   .icon-choice {
     background: var(--card);
-    border-radius: 16px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
     box-shadow: var(--shadow);
-    font-size: 30px;
-    padding: 10px 0 4px;
+    font-size: 28px;
+    padding: 10px 0 5px;
     text-align: center;
-    border: 3px solid transparent;
   }
-  .icon-choice .icon-label { font-size: 10px; color: var(--text-light); display: block; }
-  .icon-choice.selected { border-color: var(--pink); background: #fff0f5; }
+  .icon-choice .icon-label { font-size: 10px; color: var(--muted); display: block; font-weight: bold; }
+  .icon-choice.selected { border: 2px solid var(--accent); background: #f7f7f5; }
   .text-input, .time-input, .date-input {
     width: 100%;
     font-family: inherit;
-    font-size: 18px;
+    font-size: 17px;
     font-weight: bold;
-    color: var(--text);
+    color: var(--ink);
     background: var(--card);
-    border: 3px solid #eadfce;
-    border-radius: 16px;
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
     padding: 14px;
     outline: none;
   }
-  .text-input:focus, .time-input:focus, .date-input:focus { border-color: var(--pink); }
+  .text-input:focus, .time-input:focus, .date-input:focus { border-color: var(--accent); }
   .time-row { display: flex; gap: 8px; align-items: center; }
   .time-row .time-input { flex: 1; }
   .time-clear {
     background: var(--card);
+    border: 1px solid var(--line);
     border-radius: 12px;
     box-shadow: var(--shadow);
-    padding: 12px 14px;
+    padding: 13px 14px;
     font-size: 13px;
     font-weight: bold;
-    color: var(--text-light);
+    color: var(--muted);
     white-space: nowrap;
   }
-  .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 26px; }
   .btn-cancel {
     flex: 1;
     background: var(--card);
+    border: 1px solid var(--line);
     border-radius: 999px;
     padding: 16px;
-    font-size: 17px;
+    font-size: 16px;
     font-weight: bold;
-    color: var(--text-light);
+    color: var(--muted);
     box-shadow: var(--shadow);
   }
   .btn-save {
     flex: 2;
-    background: var(--green);
+    background: var(--accent);
     color: #fff;
     border-radius: 999px;
     padding: 16px;
-    font-size: 19px;
+    font-size: 17px;
     font-weight: bold;
-    box-shadow: 0 5px 0 var(--green-dark);
+    box-shadow: 0 6px 16px rgba(20, 20, 18, 0.28);
+    letter-spacing: 0.03em;
   }
-  .btn-save:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--green-dark); }
+  .btn-save:active { transform: scale(0.97); }
   .btn-save:disabled { opacity: 0.4; }
 
   /* ===== おいわい ===== */
   .celebrate-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(255, 240, 245, 0.92);
+    background: rgba(250, 250, 249, 0.95);
     display: none;
     align-items: center;
     justify-content: center;
     z-index: 100;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
     text-align: center;
     padding: 24px;
   }
   .celebrate-overlay.open { display: flex; }
-  .celebrate-chara { width: 160px; height: 160px; animation: bounce 0.7s ease infinite; }
-  .celebrate-title { font-size: 34px; font-weight: bold; color: var(--pink-dark); }
-  .celebrate-sub { font-size: 18px; font-weight: bold; line-height: 1.8; }
+  .celebrate-chara { width: 150px; height: 150px; animation: bounce 0.7s ease infinite; }
+  .celebrate-title { font-size: 30px; font-weight: bold; letter-spacing: 0.05em; }
+  .celebrate-sub { font-size: 16px; font-weight: bold; line-height: 1.9; color: var(--ink-soft); }
   .celebrate-close {
-    margin-top: 12px;
-    background: var(--pink);
+    margin-top: 14px;
+    background: var(--accent);
     color: #fff;
-    font-size: 18px;
+    font-size: 17px;
     font-weight: bold;
     border-radius: 999px;
-    padding: 14px 40px;
-    box-shadow: 0 5px 0 var(--pink-dark);
+    padding: 15px 44px;
+    box-shadow: 0 6px 16px rgba(20, 20, 18, 0.28);
   }
 
   /* 紙吹雪 */
@@ -505,9 +511,9 @@
   /* +1 ほし */
   .fly-star {
     position: fixed;
-    font-size: 28px;
+    font-size: 26px;
     font-weight: bold;
-    color: var(--pink-dark);
+    color: var(--gold);
     z-index: 99;
     pointer-events: none;
     animation: flyup 0.9s ease forwards;
@@ -518,10 +524,10 @@
   }
 
   @media (min-width: 600px) {
-    .chara-wrap { width: 120px; height: 120px; }
-    .chara { width: 116px; height: 116px; }
-    .speech { font-size: 17px; }
-    .task-name { font-size: 20px; }
+    .chara-wrap { width: 112px; height: 112px; }
+    .chara { width: 98px; height: 98px; }
+    .speech-text { font-size: 17px; }
+    .task-name { font-size: 19px; }
   }
 </style>
 </head>
@@ -532,8 +538,8 @@
   <div class="header">
     <div class="chara-wrap"><svg id="chara" class="chara" viewBox="0 0 120 120"></svg></div>
     <div class="speech">
-      <div id="speech-text">きょうも いっしょに がんばろう！</div>
-      <span class="level-tag" id="level-tag">レベル1 たまごモモ</span>
+      <div class="speech-text" id="speech-text">きょうも いっしょに がんばろう！</div>
+      <span class="level-tag" id="level-tag">レベル1 たまごヤモ</span>
     </div>
   </div>
 
@@ -575,6 +581,7 @@
 <!-- 追加モーダル -->
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal">
+    <div class="modal-handle"></div>
     <h3>あたらしい かだい</h3>
 
     <label class="form-label">① なにを やる？（えらんでね）</label>
@@ -645,15 +652,15 @@ let selectedDate = todayStr;
 let weekOffset = 0; // 0 = 今週
 
 /* ================= キャラクター ================= */
-/* レベルごとに育つ「モモ」 */
+/* レベルごとに育つ 黒いヤモリの「ヤモちゃん」 */
 const LEVELS = [
-  { need: 0,   name: "たまごモモ",   kind: "egg" },
-  { need: 5,   name: "ひよこモモ",   kind: "chick" },
-  { need: 15,  name: "こねこモモ",   kind: "cat" },
-  { need: 30,  name: "リボンモモ",   kind: "cat-ribbon" },
-  { need: 50,  name: "まほうモモ",   kind: "cat-wizard" },
-  { need: 80,  name: "おうかんモモ", kind: "cat-king" },
-  { need: 120, name: "スターモモ",   kind: "cat-star" },
+  { need: 0,   name: "たまごヤモ",   kind: "egg" },
+  { need: 5,   name: "あかちゃんヤモ", kind: "baby" },
+  { need: 15,  name: "ヤモちゃん",   kind: "gecko" },
+  { need: 30,  name: "リボンヤモ",   kind: "gecko-ribbon" },
+  { need: 50,  name: "まほうヤモ",   kind: "gecko-wizard" },
+  { need: 80,  name: "キングヤモ",   kind: "gecko-king" },
+  { need: 120, name: "スターヤモ",   kind: "gecko-star" },
 ];
 function currentLevel() {
   let lv = 0;
@@ -665,43 +672,64 @@ function currentLevel() {
 
 function charaSVG(kind, mood) {
   // mood: "normal" | "happy"
-  const mouth = mood === "happy"
-    ? '<path d="M50 72 Q60 82 70 72" stroke="#b25959" stroke-width="3" fill="#e88" stroke-linecap="round"/>'
-    : '<path d="M52 73 Q60 79 68 73" stroke="#b25959" stroke-width="3" fill="none" stroke-linecap="round"/>';
+  const BODY = "#2b2b29";
+  const BODY_LIGHT = "#3d3d3a";
+
+  // 目：ヤモリらしい大きな目
   const eyes = mood === "happy"
-    ? '<path d="M38 56 Q43 50 48 56" stroke="#5a4632" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M72 56 Q77 50 82 56" stroke="#5a4632" stroke-width="3.5" fill="none" stroke-linecap="round"/>'
-    : '<circle cx="43" cy="57" r="4.5" fill="#5a4632"/><circle cx="77" cy="57" r="4.5" fill="#5a4632"/><circle cx="44.5" cy="55.5" r="1.5" fill="#fff"/><circle cx="78.5" cy="55.5" r="1.5" fill="#fff"/>';
-  const cheeks = '<ellipse cx="34" cy="66" rx="6" ry="4" fill="#ffb3c1" opacity="0.8"/><ellipse cx="86" cy="66" rx="6" ry="4" fill="#ffb3c1" opacity="0.8"/>';
+    ? `<circle cx="44" cy="46" r="11" fill="#fff" stroke="${BODY_LIGHT}" stroke-width="1.5"/>
+       <circle cx="76" cy="46" r="11" fill="#fff" stroke="${BODY_LIGHT}" stroke-width="1.5"/>
+       <path d="M38 47 Q44 40 50 47" stroke="#1a1a19" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+       <path d="M70 47 Q76 40 82 47" stroke="#1a1a19" stroke-width="3.5" fill="none" stroke-linecap="round"/>`
+    : `<circle cx="44" cy="46" r="11" fill="#fff" stroke="${BODY_LIGHT}" stroke-width="1.5"/>
+       <circle cx="76" cy="46" r="11" fill="#fff" stroke="${BODY_LIGHT}" stroke-width="1.5"/>
+       <circle cx="44" cy="47" r="5.5" fill="#1a1a19"/><circle cx="76" cy="47" r="5.5" fill="#1a1a19"/>
+       <circle cx="46" cy="45" r="2" fill="#fff"/><circle cx="78" cy="45" r="2" fill="#fff"/>`;
+  const mouth = mood === "happy"
+    ? '<path d="M50 64 Q60 74 70 64" stroke="#f08a8a" stroke-width="3" fill="#e88" stroke-linecap="round"/>'
+    : '<path d="M52 65 Q60 71 68 65" stroke="#8a8a85" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
+  const cheeks = '<ellipse cx="33" cy="58" rx="5" ry="3.5" fill="#e8a0a0" opacity="0.55"/><ellipse cx="87" cy="58" rx="5" ry="3.5" fill="#e8a0a0" opacity="0.55"/>';
 
   if (kind === "egg") {
     return `
-      <ellipse cx="60" cy="68" rx="34" ry="40" fill="#fff6e9" stroke="#eadfce" stroke-width="3"/>
-      <path d="M30 70 L40 62 L48 70 L56 62 L64 70 L72 62 L80 70 L90 62" stroke="#ffd166" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <ellipse cx="60" cy="66" rx="32" ry="38" fill="#fafaf8" stroke="#dcdcd8" stroke-width="2.5"/>
+      <circle cx="46" cy="42" r="4" fill="#c8c8c4"/><circle cx="70" cy="36" r="3" fill="#c8c8c4"/>
+      <circle cx="78" cy="86" r="3.5" fill="#c8c8c4"/><circle cx="40" cy="82" r="3" fill="#c8c8c4"/>
+      <path d="M34 66 L44 59 L52 66 L60 59 L68 66 L76 59 L86 66" stroke="#b8b8b4" stroke-width="2.5" fill="none" stroke-linecap="round"/>
       ${eyes}${cheeks}${mouth}`;
   }
-  const earsCat = '<path d="M32 34 L38 12 L52 28 Z" fill="#ffc9d6" stroke="#f4a0b5" stroke-width="2"/><path d="M88 34 L82 12 L68 28 Z" fill="#ffc9d6" stroke="#f4a0b5" stroke-width="2"/>';
-  const headCat = '<circle cx="60" cy="60" r="36" fill="#ffe0e9" stroke="#f4a0b5" stroke-width="3"/>';
-  const whiskers = '<path d="M20 60 L32 62 M20 68 L32 67" stroke="#d8a0b0" stroke-width="2" stroke-linecap="round"/><path d="M100 60 L88 62 M100 68 L88 67" stroke="#d8a0b0" stroke-width="2" stroke-linecap="round"/>';
 
-  if (kind === "chick") {
-    return `
-      <circle cx="60" cy="62" r="36" fill="#ffef9e" stroke="#f0d060" stroke-width="3"/>
-      <path d="M52 26 Q60 16 68 26" stroke="#f0d060" stroke-width="3" fill="none"/>
-      <path d="M55 66 L60 72 L65 66 Z" fill="#ffb347"/>
-      ${eyes}${cheeks}`;
+  // しっぽ・からだ・あし（共通）
+  const tail = `<path d="M86 92 Q106 96 108 82 Q109 72 100 74 Q94 76 92 84" fill="${BODY}"/>`;
+  const body = `<ellipse cx="60" cy="90" rx="22" ry="17" fill="${BODY}"/>
+    <ellipse cx="60" cy="94" rx="13" ry="9" fill="${BODY_LIGHT}"/>`;
+  // ヤモリの指先（吸盤）
+  const feet = `
+    <circle cx="36" cy="100" r="5" fill="${BODY}"/>
+    <circle cx="31" cy="96" r="2.5" fill="${BODY_LIGHT}"/><circle cx="33" cy="104" r="2.5" fill="${BODY_LIGHT}"/><circle cx="40" cy="104" r="2.5" fill="${BODY_LIGHT}"/>
+    <circle cx="84" cy="100" r="5" fill="${BODY}"/>
+    <circle cx="89" cy="96" r="2.5" fill="${BODY_LIGHT}"/><circle cx="87" cy="104" r="2.5" fill="${BODY_LIGHT}"/><circle cx="80" cy="104" r="2.5" fill="${BODY_LIGHT}"/>`;
+  const head = `<ellipse cx="60" cy="50" rx="33" ry="28" fill="${BODY}"/>
+    <circle cx="52" cy="30" r="2" fill="${BODY_LIGHT}"/><circle cx="68" cy="28" r="2" fill="${BODY_LIGHT}"/><circle cx="60" cy="33" r="1.5" fill="${BODY_LIGHT}"/>`;
+
+  if (kind === "baby") {
+    // たまごのからをかぶった あかちゃんヤモリ
+    return `${tail}${body}${feet}${head}
+      <path d="M36 34 Q38 16 60 14 Q82 16 84 34 L76 28 L68 35 L60 27 L52 35 L44 28 Z" fill="#fafaf8" stroke="#dcdcd8" stroke-width="2"/>
+      ${eyes}${cheeks}${mouth}`;
   }
+
   let extra = "";
-  if (kind === "cat-ribbon") {
-    extra = '<path d="M60 20 L48 12 L50 24 Z" fill="#ff8fab"/><path d="M60 20 L72 12 L70 24 Z" fill="#ff8fab"/><circle cx="60" cy="20" r="5" fill="#f4638a"/>';
-  } else if (kind === "cat-wizard") {
-    extra = '<path d="M60 2 L42 30 L78 30 Z" fill="#c39bd3" stroke="#a678c0" stroke-width="2"/><circle cx="60" cy="6" r="4" fill="#ffd166"/>';
-  } else if (kind === "cat-king") {
-    extra = '<path d="M44 20 L44 8 L52 16 L60 4 L68 16 L76 8 L76 20 Z" fill="#ffd166" stroke="#e0b040" stroke-width="2"/>';
-  } else if (kind === "cat-star") {
-    extra = '<path d="M60 0 L64 10 L75 10 L66 17 L70 28 L60 21 L50 28 L54 17 L45 10 L56 10 Z" fill="#ffd166" stroke="#e0b040" stroke-width="1.5"/>';
+  if (kind === "gecko-ribbon") {
+    extra = '<path d="M60 22 L46 13 L49 26 Z" fill="#e07a95"/><path d="M60 22 L74 13 L71 26 Z" fill="#e07a95"/><circle cx="60" cy="22" r="5" fill="#c95f7d"/>';
+  } else if (kind === "gecko-wizard") {
+    extra = '<path d="M60 0 L44 28 L76 28 Z" fill="#7d6b9e" stroke="#655480" stroke-width="2"/><circle cx="60" cy="4" r="4" fill="#e8a820"/>';
+  } else if (kind === "gecko-king") {
+    extra = '<path d="M46 24 L46 10 L54 18 L60 6 L66 18 L74 10 L74 24 Z" fill="#e8a820" stroke="#c78d10" stroke-width="2"/>';
+  } else if (kind === "gecko-star") {
+    extra = '<path d="M60 0 L64 10 L75 10 L66 17 L70 28 L60 21 L50 28 L54 17 L45 10 L56 10 Z" fill="#e8a820" stroke="#c78d10" stroke-width="1.5"/>';
   }
-  return `${earsCat}${headCat}${extra}${eyes}${cheeks}${mouth}${whiskers}
-    <path d="M56 64 L60 68 L64 64" stroke="#e88" stroke-width="2.5" fill="#ffb3c1" stroke-linejoin="round"/>`;
+  return `${tail}${body}${feet}${head}${extra}${eyes}${cheeks}${mouth}`;
 }
 
 function renderChara(mood = "normal") {
@@ -735,13 +763,13 @@ const CHEERS = [
   "てんさい かも！？",
   "がんばったね！ えらい！",
   "ピカピカの ほしを ゲット！",
-  "モモも うれしいよ〜！",
+  "ヤモちゃんも うれしいよ〜！",
   "かっこいい！ つぎも いこう！",
 ];
 const GREETINGS = [
   "きょうも いっしょに がんばろう！",
   "どの かだいから やる？",
-  "モモは きみを おうえんしてるよ！",
+  "ヤモちゃんは きみを おうえんしてるよ！",
 ];
 function say(text) {
   document.getElementById("speech-text").textContent = text;
@@ -765,8 +793,8 @@ function renderWeek() {
     if (ds === selectedDate) chip.classList.add("selected");
     const dayTasks = state.tasks.filter(t => t.date === ds);
     const doneAll = dayTasks.length > 0 && dayTasks.every(t => t.done);
-    const dot = dayTasks.length === 0 ? "" : doneAll ? "⭐" : "🔵";
-    chip.innerHTML = `<div class="dow">${DOW[d.getDay()]}</div><div class="dnum">${d.getDate()}</div><div class="dot">${dot}</div>`;
+    const dot = dayTasks.length === 0 ? "" : doneAll ? "⭐" : "●";
+    chip.innerHTML = `<div class="dow">${DOW[d.getDay()]}</div><div class="dnum">${d.getDate()}</div><div class="dot" style="color:${doneAll ? "var(--gold)" : "var(--muted)"}">${dot}</div>`;
     chip.addEventListener("click", () => { selectedDate = ds; render(); });
     strip.appendChild(chip);
   }
@@ -797,7 +825,7 @@ function renderTasks() {
     tasks.length ? (doneN / tasks.length) * 100 + "%" : "0%";
 
   if (tasks.length === 0) {
-    list.innerHTML = `<div class="empty-msg"><div class="big">🌱</div>まだ かだいが ないよ<br>「＋ かだいを ふやす」で つくってみよう！</div>`;
+    list.innerHTML = `<div class="empty-msg"><div class="big">🦎</div>まだ かだいが ないよ<br>「＋ かだいを ふやす」で つくってみよう！</div>`;
     return;
   }
 
@@ -870,7 +898,7 @@ function deleteTask(id) {
 
 /* ================= エフェクト ================= */
 function confettiBurst(n) {
-  const emojis = ["🎉", "✨", "⭐", "💖", "🌈", "🍀"];
+  const emojis = ["✨", "⭐", "🌟", "💫", "🎉"];
   for (let i = 0; i < n; i++) {
     const el = document.createElement("div");
     el.className = "confetti";
