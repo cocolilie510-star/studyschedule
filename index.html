@@ -61,12 +61,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--bg);
+    background: #f8f5f0;
+    border: 1px solid var(--line);
     border-radius: 50%;
+    overflow: hidden;
   }
   .chara {
-    width: 84px;
-    height: 84px;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.45);
+    transform-origin: 36% 55%;
     transition: transform 0.3s;
   }
   .chara.happy { animation: bounce 0.6s ease 2; }
@@ -481,7 +486,15 @@
     padding: 24px;
   }
   .celebrate-overlay.open { display: flex; }
-  .celebrate-chara { width: 150px; height: 150px; animation: bounce 0.7s ease infinite; }
+  .celebrate-chara {
+    width: 170px;
+    height: 170px;
+    border-radius: 50%;
+    background: #f8f5f0;
+    border: 1px solid var(--line);
+    object-fit: cover;
+    animation: bounce 0.7s ease infinite;
+  }
   .celebrate-title { font-size: 30px; font-weight: bold; letter-spacing: 0.05em; }
   .celebrate-sub { font-size: 16px; font-weight: bold; line-height: 1.9; color: var(--ink-soft); }
   .celebrate-close {
@@ -536,7 +549,7 @@
 <div class="app">
   <!-- キャラクター -->
   <div class="header">
-    <div class="chara-wrap"><svg id="chara" class="chara" viewBox="0 0 120 120"></svg></div>
+    <div class="chara-wrap"><img id="chara" class="chara" src="assets/yamo-1.png" alt="ヤモちゃん"></div>
     <div class="speech">
       <div class="speech-text" id="speech-text">きょうも いっしょに がんばろう！</div>
       <span class="level-tag" id="level-tag">レベル1 たまごヤモ</span>
@@ -611,7 +624,7 @@
 
 <!-- ぜんぶできた おいわい -->
 <div class="celebrate-overlay" id="celebrate-overlay">
-  <svg class="celebrate-chara" viewBox="0 0 120 120" id="celebrate-chara"></svg>
+  <img class="celebrate-chara" id="celebrate-chara" src="assets/yamo-1.png" alt="ヤモちゃん">
   <div class="celebrate-title" id="celebrate-title">🎉 ぜんぶ できた！ 🎉</div>
   <div class="celebrate-sub" id="celebrate-sub">きょうの かだいを ぜんぶ クリア！<br>すごい！ えらい！ かっこいい！</div>
   <button class="celebrate-close" id="celebrate-close">やったー！</button>
@@ -652,15 +665,13 @@ let selectedDate = todayStr;
 let weekOffset = 0; // 0 = 今週
 
 /* ================= キャラクター ================= */
-/* レベルごとに育つ 黒いヤモリの「ヤモちゃん」 */
+/* ほしを あつめると そだつ 黒いヤモリの「ヤモちゃん」 */
 const LEVELS = [
-  { need: 0,   name: "たまごヤモ",   kind: "egg" },
-  { need: 5,   name: "あかちゃんヤモ", kind: "baby" },
-  { need: 15,  name: "ヤモちゃん",   kind: "gecko" },
-  { need: 30,  name: "リボンヤモ",   kind: "gecko-ribbon" },
-  { need: 50,  name: "まほうヤモ",   kind: "gecko-wizard" },
-  { need: 80,  name: "キングヤモ",   kind: "gecko-king" },
-  { need: 120, name: "スターヤモ",   kind: "gecko-star" },
+  { need: 0,  name: "うまれたてヤモ", img: "assets/yamo-1.png" },
+  { need: 5,  name: "あかちゃんヤモ", img: "assets/yamo-2.png" },
+  { need: 15, name: "こどもヤモ",     img: "assets/yamo-3.png" },
+  { need: 30, name: "おとなヤモ",     img: "assets/yamo-4.png" },
+  { need: 50, name: "ママヤモ",       img: "assets/yamo-5.png" },
 ];
 function currentLevel() {
   let lv = 0;
@@ -670,71 +681,11 @@ function currentLevel() {
   return lv;
 }
 
-function charaSVG(kind, mood) {
-  // mood: "normal" | "happy"
-  const BODY = "#2b2b29";
-  const BODY_LIGHT = "#3d3d3a";
-
-  // 目：ヤモリらしい大きな目
-  const eyes = mood === "happy"
-    ? `<circle cx="44" cy="46" r="11" fill="#fff" stroke="${BODY_LIGHT}" stroke-width="1.5"/>
-       <circle cx="76" cy="46" r="11" fill="#fff" stroke="${BODY_LIGHT}" stroke-width="1.5"/>
-       <path d="M38 47 Q44 40 50 47" stroke="#1a1a19" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-       <path d="M70 47 Q76 40 82 47" stroke="#1a1a19" stroke-width="3.5" fill="none" stroke-linecap="round"/>`
-    : `<circle cx="44" cy="46" r="11" fill="#fff" stroke="${BODY_LIGHT}" stroke-width="1.5"/>
-       <circle cx="76" cy="46" r="11" fill="#fff" stroke="${BODY_LIGHT}" stroke-width="1.5"/>
-       <circle cx="44" cy="47" r="5.5" fill="#1a1a19"/><circle cx="76" cy="47" r="5.5" fill="#1a1a19"/>
-       <circle cx="46" cy="45" r="2" fill="#fff"/><circle cx="78" cy="45" r="2" fill="#fff"/>`;
-  const mouth = mood === "happy"
-    ? '<path d="M50 64 Q60 74 70 64" stroke="#f08a8a" stroke-width="3" fill="#e88" stroke-linecap="round"/>'
-    : '<path d="M52 65 Q60 71 68 65" stroke="#8a8a85" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
-  const cheeks = '<ellipse cx="33" cy="58" rx="5" ry="3.5" fill="#e8a0a0" opacity="0.55"/><ellipse cx="87" cy="58" rx="5" ry="3.5" fill="#e8a0a0" opacity="0.55"/>';
-
-  if (kind === "egg") {
-    return `
-      <ellipse cx="60" cy="66" rx="32" ry="38" fill="#fafaf8" stroke="#dcdcd8" stroke-width="2.5"/>
-      <circle cx="46" cy="42" r="4" fill="#c8c8c4"/><circle cx="70" cy="36" r="3" fill="#c8c8c4"/>
-      <circle cx="78" cy="86" r="3.5" fill="#c8c8c4"/><circle cx="40" cy="82" r="3" fill="#c8c8c4"/>
-      <path d="M34 66 L44 59 L52 66 L60 59 L68 66 L76 59 L86 66" stroke="#b8b8b4" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-      ${eyes}${cheeks}${mouth}`;
-  }
-
-  // しっぽ・からだ・あし（共通）
-  const tail = `<path d="M86 92 Q106 96 108 82 Q109 72 100 74 Q94 76 92 84" fill="${BODY}"/>`;
-  const body = `<ellipse cx="60" cy="90" rx="22" ry="17" fill="${BODY}"/>
-    <ellipse cx="60" cy="94" rx="13" ry="9" fill="${BODY_LIGHT}"/>`;
-  // ヤモリの指先（吸盤）
-  const feet = `
-    <circle cx="36" cy="100" r="5" fill="${BODY}"/>
-    <circle cx="31" cy="96" r="2.5" fill="${BODY_LIGHT}"/><circle cx="33" cy="104" r="2.5" fill="${BODY_LIGHT}"/><circle cx="40" cy="104" r="2.5" fill="${BODY_LIGHT}"/>
-    <circle cx="84" cy="100" r="5" fill="${BODY}"/>
-    <circle cx="89" cy="96" r="2.5" fill="${BODY_LIGHT}"/><circle cx="87" cy="104" r="2.5" fill="${BODY_LIGHT}"/><circle cx="80" cy="104" r="2.5" fill="${BODY_LIGHT}"/>`;
-  const head = `<ellipse cx="60" cy="50" rx="33" ry="28" fill="${BODY}"/>
-    <circle cx="52" cy="30" r="2" fill="${BODY_LIGHT}"/><circle cx="68" cy="28" r="2" fill="${BODY_LIGHT}"/><circle cx="60" cy="33" r="1.5" fill="${BODY_LIGHT}"/>`;
-
-  if (kind === "baby") {
-    // たまごのからをかぶった あかちゃんヤモリ
-    return `${tail}${body}${feet}${head}
-      <path d="M36 34 Q38 16 60 14 Q82 16 84 34 L76 28 L68 35 L60 27 L52 35 L44 28 Z" fill="#fafaf8" stroke="#dcdcd8" stroke-width="2"/>
-      ${eyes}${cheeks}${mouth}`;
-  }
-
-  let extra = "";
-  if (kind === "gecko-ribbon") {
-    extra = '<path d="M60 22 L46 13 L49 26 Z" fill="#e07a95"/><path d="M60 22 L74 13 L71 26 Z" fill="#e07a95"/><circle cx="60" cy="22" r="5" fill="#c95f7d"/>';
-  } else if (kind === "gecko-wizard") {
-    extra = '<path d="M60 0 L44 28 L76 28 Z" fill="#7d6b9e" stroke="#655480" stroke-width="2"/><circle cx="60" cy="4" r="4" fill="#e8a820"/>';
-  } else if (kind === "gecko-king") {
-    extra = '<path d="M46 24 L46 10 L54 18 L60 6 L66 18 L74 10 L74 24 Z" fill="#e8a820" stroke="#c78d10" stroke-width="2"/>';
-  } else if (kind === "gecko-star") {
-    extra = '<path d="M60 0 L64 10 L75 10 L66 17 L70 28 L60 21 L50 28 L54 17 L45 10 L56 10 Z" fill="#e8a820" stroke="#c78d10" stroke-width="1.5"/>';
-  }
-  return `${tail}${body}${feet}${head}${extra}${eyes}${cheeks}${mouth}`;
-}
-
 function renderChara(mood = "normal") {
   const lv = currentLevel();
-  document.getElementById("chara").innerHTML = charaSVG(LEVELS[lv].kind, mood);
+  const img = document.getElementById("chara");
+  img.src = LEVELS[lv].img;
+  img.classList.toggle("happy", mood === "happy");
   document.getElementById("level-tag").textContent = `レベル${lv + 1} ${LEVELS[lv].name}`;
 }
 
@@ -923,7 +874,7 @@ function flyStar(x, y) {
 /* ================= おいわい ================= */
 function openCelebrate() {
   const lv = currentLevel();
-  document.getElementById("celebrate-chara").innerHTML = charaSVG(LEVELS[lv].kind, "happy");
+  document.getElementById("celebrate-chara").src = LEVELS[lv].img;
   document.getElementById("celebrate-overlay").classList.add("open");
   confettiBurst(40);
 }
@@ -1062,6 +1013,7 @@ function render() {
   renderTasks();
 }
 
+LEVELS.forEach(l => { const im = new Image(); im.src = l.img; });
 buildModalChoices();
 say(GREETINGS[Math.floor(Math.random() * GREETINGS.length)]);
 render();
