@@ -689,6 +689,83 @@
     margin-bottom: 20px;
   }
 
+  /* ===== タイマー ===== */
+  .timer-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 200;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 24px;
+    text-align: center;
+    overflow-y: auto;
+  }
+  .timer-overlay.open { display: flex; }
+  .timer-overlay h3 { font-size: 22px; letter-spacing: 0.04em; }
+  .timer-clock {
+    position: relative;
+    width: min(66vw, 300px);
+    aspect-ratio: 1;
+  }
+  .timer-clock svg { width: 100%; height: 100%; transform: rotate(0deg); }
+  .timer-track { fill: #ececea; stroke: var(--line); stroke-width: 1; }
+  .timer-pie { fill: var(--gold); transition: fill 0.3s; }
+  .timer-pie.warn { fill: #f0894c; }
+  .timer-hub { fill: var(--ink-soft); }
+  .timer-digit {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 20%;
+    font-size: 40px;
+    font-weight: bold;
+    color: var(--ink);
+    letter-spacing: 0.04em;
+    text-shadow: 0 1px 0 #fff, 0 0 8px #fff;
+  }
+  .timer-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    max-width: 340px;
+  }
+  .timer-preset {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    box-shadow: var(--shadow);
+    padding: 10px 18px;
+    font-size: 16px;
+    font-weight: bold;
+  }
+  .timer-preset.selected { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .timer-controls { display: flex; gap: 12px; }
+  .timer-ctrl {
+    border-radius: 999px;
+    padding: 14px 28px;
+    font-size: 17px;
+    font-weight: bold;
+  }
+  .timer-reset {
+    background: var(--card);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    color: var(--muted);
+  }
+  .timer-start {
+    background: var(--green);
+    color: #fff;
+    box-shadow: 0 5px 14px rgba(108, 180, 76, 0.4);
+    min-width: 140px;
+  }
+  .timer-start.running { background: var(--gold); box-shadow: 0 5px 14px rgba(232, 168, 32, 0.4); }
+  .timer-ctrl:active { transform: scale(0.96); }
+
   /* 紙吹雪 */
   .confetti {
     position: fixed;
@@ -743,6 +820,7 @@
       <div class="label" id="level-label">つぎのレベルまで あと 5こ</div>
       <div class="bar-outer"><div class="bar-inner" id="level-bar"></div></div>
     </div>
+    <button class="gallery-btn" id="timer-btn" aria-label="タイマー">⏰</button>
     <button class="gallery-btn" id="gallery-btn" aria-label="そだてた ずかん">📖</button>
   </div>
 
@@ -836,6 +914,25 @@
   <div class="egg-lead">さいごまで そだてた いきものが ここに ならぶよ！</div>
   <div class="gallery-list" id="gallery-list"></div>
   <button class="celebrate-close" id="gallery-close">とじる</button>
+</div>
+
+<!-- タイマー -->
+<div class="timer-overlay" id="timer-overlay">
+  <h3>タイマー</h3>
+  <div class="timer-clock">
+    <svg viewBox="0 0 120 120" id="timer-svg">
+      <circle cx="60" cy="60" r="54" class="timer-track"/>
+      <path id="timer-pie" class="timer-pie" d=""/>
+      <circle cx="60" cy="60" r="4" class="timer-hub"/>
+    </svg>
+    <div class="timer-digit" id="timer-digit">5:00</div>
+  </div>
+  <div class="timer-presets" id="timer-presets"></div>
+  <div class="timer-controls">
+    <button class="timer-ctrl timer-reset" id="timer-reset">やりなおし</button>
+    <button class="timer-ctrl timer-start" id="timer-start">スタート</button>
+  </div>
+  <button class="celebrate-close" id="timer-close">とじる</button>
 </div>
 
 <!-- ぜんぶできた おいわい -->
@@ -1366,6 +1463,139 @@ document.getElementById("gallery-close").addEventListener("click", () => {
   document.getElementById("gallery-overlay").classList.remove("open");
 });
 
+/* ================= タイマー ================= */
+const TIMER_PRESETS = [
+  { label: "1ぷん", sec: 60 },
+  { label: "3ぷん", sec: 180 },
+  { label: "5ふん", sec: 300 },
+  { label: "10ぷん", sec: 600 },
+  { label: "15ふん", sec: 900 },
+];
+let timerTotal = 300;      // えらんだ じかん（びょう）
+let timerLeft = 300;       // のこり（びょう。小数OK）
+let timerRunning = false;
+let timerRAF = null;
+let timerLastTs = 0;
+
+function timerFmt(sec) {
+  sec = Math.max(0, Math.ceil(sec));
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+function piePath(frac) {
+  // frac: 1=まんたん, 0=から。12時から 時計回りに のこりを ぬる
+  if (frac <= 0) return "";
+  const f = Math.min(frac, 0.9999);
+  const cx = 60, cy = 60, r = 54;
+  const end = 360 * f;
+  const a = (end - 90) * Math.PI / 180;
+  const ex = cx + r * Math.cos(a), ey = cy + r * Math.sin(a);
+  const large = end > 180 ? 1 : 0;
+  return `M${cx},${cy} L${cx},${cy - r} A${r},${r} 0 ${large} 1 ${ex.toFixed(2)},${ey.toFixed(2)} Z`;
+}
+function timerRender() {
+  const frac = timerTotal > 0 ? timerLeft / timerTotal : 0;
+  const pie = document.getElementById("timer-pie");
+  pie.setAttribute("d", piePath(frac));
+  pie.classList.toggle("warn", timerLeft <= 10 && timerLeft > 0);
+  document.getElementById("timer-digit").textContent = timerFmt(timerLeft);
+}
+function setTimerPreset(sec) {
+  timerStop();
+  timerTotal = sec;
+  timerLeft = sec;
+  document.querySelectorAll(".timer-preset").forEach(el => {
+    el.classList.toggle("selected", Number(el.dataset.sec) === sec);
+  });
+  timerRender();
+}
+function buildTimerPresets() {
+  const wrap = document.getElementById("timer-presets");
+  wrap.innerHTML = "";
+  for (const p of TIMER_PRESETS) {
+    const b = document.createElement("button");
+    b.className = "timer-preset";
+    b.dataset.sec = p.sec;
+    b.textContent = p.label;
+    b.addEventListener("click", () => setTimerPreset(p.sec));
+    wrap.appendChild(b);
+  }
+}
+function timerTick(ts) {
+  if (!timerRunning) return;
+  if (!timerLastTs) timerLastTs = ts;
+  const dt = (ts - timerLastTs) / 1000;
+  timerLastTs = ts;
+  timerLeft -= dt;
+  if (timerLeft <= 0) {
+    timerLeft = 0;
+    timerRender();
+    timerFinish();
+    return;
+  }
+  timerRender();
+  timerRAF = requestAnimationFrame(timerTick);
+}
+function timerStart() {
+  if (timerLeft <= 0) timerLeft = timerTotal;
+  timerRunning = true;
+  timerLastTs = 0;
+  document.getElementById("timer-start").textContent = "とめる";
+  document.getElementById("timer-start").classList.add("running");
+  timerRAF = requestAnimationFrame(timerTick);
+}
+function timerStop() {
+  timerRunning = false;
+  if (timerRAF) cancelAnimationFrame(timerRAF);
+  document.getElementById("timer-start").textContent = "スタート";
+  document.getElementById("timer-start").classList.remove("running");
+}
+function timerFinish() {
+  timerStop();
+  confettiBurst(30);
+  beep();
+  say("ピンポーン！ じかんだよ！");
+}
+/* おわりの おと（ファイル不要。Web Audioで ピピピ） */
+function beep() {
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    const ctx = new AC();
+    const notes = [880, 880, 1170];
+    notes.forEach((freq, i) => {
+      const t = ctx.currentTime + i * 0.22;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.35, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(t); osc.stop(t + 0.22);
+    });
+    setTimeout(() => ctx.close(), 1200);
+  } catch (e) { /* おとが だめでも つづける */ }
+}
+
+document.getElementById("timer-btn").addEventListener("click", () => {
+  document.getElementById("timer-overlay").classList.add("open");
+});
+document.getElementById("timer-close").addEventListener("click", () => {
+  timerStop();
+  document.getElementById("timer-overlay").classList.remove("open");
+});
+document.getElementById("timer-start").addEventListener("click", () => {
+  if (timerRunning) timerStop(); else timerStart();
+});
+document.getElementById("timer-reset").addEventListener("click", () => {
+  timerStop();
+  timerLeft = timerTotal;
+  timerRender();
+});
+
 /* ================= 追加モーダル ================= */
 const PRESETS = [
   { name: "こくごの しゅくだい", icon: "📖" },
@@ -1529,6 +1759,8 @@ function render() {
 
 buildEggPicker();
 buildModalChoices();
+buildTimerPresets();
+setTimerPreset(300);
 say(pickLine(GREETINGS));
 render();
 if (!state.egg) document.getElementById("egg-overlay").classList.add("open");
