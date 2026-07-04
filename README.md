@@ -32,6 +32,5 @@ GitHub Pages などで公開すれば、URLを開くだけでどの端末から�
 
 HTML / CSS / JavaScript のみ（依存ライブラリなし）。
 
-- `index.html` — アプリ本体
-- `assets/yamo-1.png` 〜 `yamo-5.png` — キャラクター画像（Web表示用に560pxへ縮小）
-- `assets/original/` — アップロードされた元画像
+- `index.html` — アプリ本体（キャラクター画像はWebP形式でファイル内に埋め込み済み。このファイル1つだけで動きます）
+- `assets/original/` — キャラクターの元画像（高解像度）
