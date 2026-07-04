@@ -31,15 +31,17 @@ GitHub Pages などで公開すれば、URLを開くだけでどの端末から�
 - ボタンは大きく、タップでの操作のみで完結
 - 間違えて「できた」にしても、もう一度タップで戻せます
 
-## 開発者向け：たまごの種類の増やしかた
+## 開発者向け：たまご・生きものの増やしかた
 
-`index.html` 内の `EGGS` 配列に1行追加するだけです。
+設定はすべて `index.html` 内の2つの設定オブジェクトにまとまっています。
+
+### たまごを増やす（`EGGS` 配列に1行追加）
 
 ```js
 const EGGS = [
-  { id: "shiro",  name: "しろたまご",   base: "#f2ede3", deco: "spots",   decoColor: "#d5cbba" },
+  { id: "shiro", name: "しろたまご", base: "#f2ede3", deco: "spots", decoColor: "#d5cbba", species: "yamori" },
   // ↓ たとえばこう追加
-  { id: "yuuhi",  name: "ゆうひたまご", base: "#f7e3d0", deco: "stripes", decoColor: "#e0a878" },
+  { id: "yuuhi", name: "ゆうひたまご", base: "#f7e3d0", deco: "stripes", decoColor: "#e0a878", species: "yamori" },
 ];
 ```
 
@@ -48,6 +50,29 @@ const EGGS = [
 - `base` — たまごの地の色
 - `deco` — 模様の種類：`spots` / `stripes` / `zigzag` / `hearts` / `stars` / `none`
 - `decoColor` — 模様の色
+- `species` — このたまごから生まれる生きもの（下の `SPECIES` のキー）
+
+### 生まれる生きものを増やす（`SPECIES` にエントリ追加）
+
+```js
+const SPECIES = {
+  yamori: { ... },
+  // ↓ たとえばこう追加
+  tokage: {
+    name: "ミドリトカゲ",      // ずかん上の名前
+    nick: "トカちゃん",        // セリフで使われる呼び名（「{nick}も うれしいよ〜！」など）
+    stages: [                  // 成長段階（数はいくつでもOK）
+      { need: 3,  name: "うまれたてトカ", img: "assets/tokage-1.png" },
+      { need: 10, name: "あかちゃんトカ", img: "assets/tokage-2.png" },
+      { need: 25, name: "おとなトカ",     img: "assets/tokage-3.png" },
+    ],
+  },
+};
+```
+
+- `need` — その段階になるのに必要な星の数（昇順で書く）
+- `img` — 画像。`assets/xxx.png` のようなファイルパスでも、data URI（埋め込み）でもOK
+- 追加した生きものは、`EGGS` のどれかの `species` に指定すると、そのたまごから生まれます
 
 ## ぎじゅつ
 

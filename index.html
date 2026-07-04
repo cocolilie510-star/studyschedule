@@ -703,7 +703,7 @@
 <!-- たまごえらび（さいしょの1かい） -->
 <div class="egg-overlay" id="egg-overlay">
   <h3>すきな たまごを えらんでね</h3>
-  <div class="egg-lead">かだいを クリアして ほしを あつめると<br>たまごから ヤモリが うまれて そだつよ！</div>
+  <div class="egg-lead">かだいを クリアして ほしを あつめると<br>たまごから かわいい いきものが うまれて そだつよ！</div>
   <div class="egg-grid" id="egg-grid"></div>
 </div>
 
@@ -768,11 +768,11 @@ const YAMO_IMG = [
    ここに 1行 たすだけで たまごの しゅるいを ふやせます。
    deco: "spots" | "stripes" | "zigzag" | "hearts" | "stars" | "none" */
 const EGGS = [
-  { id: "shiro",  name: "しろたまご",   base: "#f2ede3", deco: "spots",   decoColor: "#d5cbba" },
-  { id: "sakura", name: "さくらたまご", base: "#f7e0e5", deco: "hearts",  decoColor: "#dfa3af" },
-  { id: "sora",   name: "そらたまご",   base: "#dde9f2", deco: "stripes", decoColor: "#a5c3d9" },
-  { id: "wakaba", name: "わかばたまご", base: "#e3efdb", deco: "zigzag",  decoColor: "#a9c795" },
-  { id: "hoshi",  name: "ほしたまご",   base: "#f5edd2", deco: "stars",   decoColor: "#d9b95c" },
+  { id: "shiro",  name: "しろたまご",   base: "#f2ede3", deco: "spots",   decoColor: "#d5cbba", species: "yamori" },
+  { id: "sakura", name: "さくらたまご", base: "#f7e0e5", deco: "hearts",  decoColor: "#dfa3af", species: "yamori" },
+  { id: "sora",   name: "そらたまご",   base: "#dde9f2", deco: "stripes", decoColor: "#a5c3d9", species: "yamori" },
+  { id: "wakaba", name: "わかばたまご", base: "#e3efdb", deco: "zigzag",  decoColor: "#a9c795", species: "yamori" },
+  { id: "hoshi",  name: "ほしたまご",   base: "#f5edd2", deco: "stars",   decoColor: "#d9b95c", species: "yamori" },
 ];
 
 function eggSVG(egg) {
@@ -810,16 +810,47 @@ function currentEgg() {
   return EGGS.find(e => e.id === state.egg) || EGGS[0];
 }
 
+/* ================= キャラクターずかん =================
+   うまれる いきものは ここに ついかするだけで ふやせます。
+   - nick   : セリフで つかう よびな
+   - stages : せいちょうの だんかい（need = ひつような ほしの数、
+              img = 画像。data URI でも "assets/xxx.png" のような
+              ファイルパスでも OK）
+   たまご（EGGS）の species に キーを かくと、そのたまごから うまれます。 */
+const SPECIES = {
+  yamori: {
+    name: "クロヤモリ",
+    nick: "ヤモちゃん",
+    stages: [
+      { need: 3,  name: "うまれたてヤモ", img: YAMO_IMG[0] },
+      { need: 10, name: "あかちゃんヤモ", img: YAMO_IMG[1] },
+      { need: 20, name: "こどもヤモ",     img: YAMO_IMG[2] },
+      { need: 35, name: "おとなヤモ",     img: YAMO_IMG[3] },
+      { need: 55, name: "ママヤモ",       img: YAMO_IMG[4] },
+    ],
+  },
+  // ↓ あたらしい いきものの れい（画像を用意して コメントを外すだけ）
+  // tokage: {
+  //   name: "ミドリトカゲ",
+  //   nick: "トカちゃん",
+  //   stages: [
+  //     { need: 3,  name: "うまれたてトカ", img: "assets/tokage-1.png" },
+  //     { need: 10, name: "あかちゃんトカ", img: "assets/tokage-2.png" },
+  //     { need: 25, name: "おとなトカ",     img: "assets/tokage-3.png" },
+  //   ],
+  // },
+};
+function currentSpecies() {
+  return SPECIES[currentEgg().species] || SPECIES.yamori;
+}
+
 /* ================= レベル ================= */
 function getLevels() {
   const egg = currentEgg();
+  const sp = currentSpecies();
   return [
-    { need: 0,  name: egg.name,         img: eggDataURI(egg), fit: "contain" },
-    { need: 3,  name: "うまれたてヤモ", img: YAMO_IMG[0] },
-    { need: 10, name: "あかちゃんヤモ", img: YAMO_IMG[1] },
-    { need: 20, name: "こどもヤモ",     img: YAMO_IMG[2] },
-    { need: 35, name: "おとなヤモ",     img: YAMO_IMG[3] },
-    { need: 55, name: "ママヤモ",       img: YAMO_IMG[4] },
+    { need: 0, name: egg.name, img: eggDataURI(egg), fit: "contain" },
+    ...sp.stages,
   ];
 }
 function currentLevel() {
@@ -861,20 +892,25 @@ function renderStars(animate) {
 }
 
 /* ================= セリフ ================= */
+/* {nick} は そだてている いきものの よびなに おきかわります */
 const CHEERS = [
   "やったね！ すごい！",
   "その ちょうし！",
   "てんさい かも！？",
   "がんばったね！ えらい！",
   "ピカピカの ほしを ゲット！",
-  "ヤモちゃんも うれしいよ〜！",
+  "{nick}も うれしいよ〜！",
   "かっこいい！ つぎも いこう！",
 ];
 const GREETINGS = [
   "きょうも いっしょに がんばろう！",
   "どの かだいから やる？",
-  "ヤモちゃんは きみを おうえんしてるよ！",
+  "{nick}は きみを おうえんしてるよ！",
 ];
+function pickLine(lines) {
+  const line = lines[Math.floor(Math.random() * lines.length)];
+  return line.replaceAll("{nick}", currentSpecies().nick);
+}
 function say(text) {
   document.getElementById("speech-text").textContent = text;
 }
@@ -969,7 +1005,7 @@ function toggleTask(id, ev) {
     saveState();
     flyStar(ev.clientX, ev.clientY);
     confettiBurst(14);
-    say(CHEERS[Math.floor(Math.random() * CHEERS.length)]);
+    say(pickLine(CHEERS));
     renderChara("happy");
     setTimeout(() => renderChara("normal"), 1500);
     render();
@@ -1248,7 +1284,7 @@ function render() {
 
 buildEggPicker();
 buildModalChoices();
-say(GREETINGS[Math.floor(Math.random() * GREETINGS.length)]);
+say(pickLine(GREETINGS));
 render();
 if (!state.egg) document.getElementById("egg-overlay").classList.add("open");
 </script>
