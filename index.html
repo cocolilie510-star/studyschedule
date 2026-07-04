@@ -342,6 +342,19 @@
     75% { transform: rotate(-0.5deg); }
   }
 
+  /* さいしょから やりなおす（おとな向け。へんしゅうモード中だけ表示） */
+  .reset-zone { display: none; margin-top: 32px; text-align: center; }
+  body.edit-mode .reset-zone { display: block; }
+  #reset-btn {
+    background: none;
+    border: 1.5px dashed var(--danger);
+    color: var(--danger);
+    font-size: 12px;
+    font-weight: bold;
+    padding: 10px 18px;
+    border-radius: 999px;
+  }
+
   .empty-msg {
     text-align: center;
     padding: 44px 20px;
@@ -757,6 +770,11 @@
 
   <!-- かだいリスト -->
   <div class="task-list" id="task-list"></div>
+
+  <!-- リセット（へんしゅうモードのときだけ ひょうじ） -->
+  <div class="reset-zone">
+    <button id="reset-btn">🔄 さいしょから やりなおす（ぜんぶ けす）</button>
+  </div>
 </div>
 
 <!-- 下部ボタン -->
@@ -1487,6 +1505,14 @@ document.getElementById("btn-save").addEventListener("click", () => {
 /* ================= へんしゅうモード ================= */
 document.getElementById("edit-btn").addEventListener("click", () => {
   document.body.classList.toggle("edit-mode");
+});
+
+/* ================= さいしょから やりなおす ================= */
+document.getElementById("reset-btn").addEventListener("click", () => {
+  if (!confirm("ほんとうに さいしょから やりなおす？\nかだい・ほし・そだてた きろくが ぜんぶ きえるよ。")) return;
+  if (!confirm("さいごの かくにんだよ。ほんとうに ぜんぶ けして いい？\nこの そうさは もとに もどせません。")) return;
+  localStorage.removeItem(STORE_KEY);
+  location.reload();
 });
 
 /* ================= 週送り ================= */
