@@ -136,6 +136,44 @@
     width: 0%;
     transition: width 0.6s cubic-bezier(.34,1.56,.64,1);
   }
+  .gallery-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    font-size: 21px;
+    flex-shrink: 0;
+    transition: transform 0.15s;
+  }
+  .gallery-btn:active { transform: scale(0.92); }
+
+  /* あたらしい たまごへ すすむ バナー */
+  .new-egg-banner {
+    display: none;
+    margin-top: 12px;
+    background: var(--gold-soft);
+    border: 1px solid #ecd8a0;
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .new-egg-banner.show { display: flex; }
+  .new-egg-banner span { font-size: 14px; font-weight: bold; color: #8a6408; }
+  .new-egg-banner button {
+    background: var(--accent);
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 999px;
+    padding: 10px 18px;
+    box-shadow: 0 4px 10px rgba(20, 20, 18, 0.22);
+    white-space: nowrap;
+  }
+  .new-egg-banner button:active { transform: scale(0.96); }
 
   /* ===== 日にち選択 ===== */
   .date-nav {
@@ -536,8 +574,8 @@
     padding: 6px 22px;
   }
 
-  /* たまごえらび */
-  .egg-overlay {
+  /* たまごえらび／そだてた ずかん */
+  .egg-overlay, .gallery-overlay {
     position: fixed;
     inset: 0;
     background: var(--bg);
@@ -551,8 +589,8 @@
     text-align: center;
     overflow-y: auto;
   }
-  .egg-overlay.open { display: flex; }
-  .egg-overlay h3 { font-size: 22px; letter-spacing: 0.04em; }
+  .egg-overlay.open, .gallery-overlay.open { display: flex; }
+  .egg-overlay h3, .gallery-overlay h3 { font-size: 22px; letter-spacing: 0.04em; }
   .egg-lead { font-size: 14px; color: var(--muted); font-weight: bold; margin-bottom: 16px; line-height: 1.8; }
   .egg-grid {
     display: flex;
@@ -573,10 +611,70 @@
     align-items: center;
     gap: 4px;
     transition: transform 0.15s;
+    position: relative;
   }
   .egg-choice:active { transform: scale(0.94); }
   .egg-choice svg { width: 104px; height: 104px; }
   .egg-name { font-size: 14px; font-weight: bold; }
+  .egg-done-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: var(--green);
+    color: #fff;
+    font-size: 10px;
+    font-weight: bold;
+    border-radius: 999px;
+    padding: 2px 8px;
+  }
+
+  /* そだてた ずかん の なかみ */
+  .gallery-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+    max-width: 620px;
+    margin-bottom: 20px;
+  }
+  .gallery-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    padding: 14px;
+    text-align: left;
+  }
+  .gallery-card-title { font-size: 15px; font-weight: bold; margin-bottom: 10px; }
+  .gallery-stages {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+  .gallery-stage { flex-shrink: 0; width: 84px; text-align: center; }
+  .gallery-stage img {
+    width: 84px;
+    height: 84px;
+    border-radius: 14px;
+    object-fit: cover;
+    background: #f8f5f0;
+    border: 1px solid var(--line);
+  }
+  .gallery-stage span {
+    display: block;
+    font-size: 10px;
+    color: var(--muted);
+    font-weight: bold;
+    margin-top: 4px;
+  }
+  .gallery-empty {
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 2;
+    margin-bottom: 20px;
+  }
 
   /* 紙吹雪 */
   .confetti {
@@ -632,6 +730,13 @@
       <div class="label" id="level-label">つぎのレベルまで あと 5こ</div>
       <div class="bar-outer"><div class="bar-inner" id="level-bar"></div></div>
     </div>
+    <button class="gallery-btn" id="gallery-btn" aria-label="そだてた ずかん">📖</button>
+  </div>
+
+  <!-- さいごまで そだてたら あたらしい たまごへ -->
+  <div class="new-egg-banner" id="new-egg-banner">
+    <span>🎉 さいごまで そだてたね！</span>
+    <button id="new-egg-btn">🥚 あたらしい たまごを えらぶ</button>
   </div>
 
   <!-- 日にちナビ -->
@@ -700,11 +805,19 @@
   <button class="celebrate-close" id="levelup-close">やったー！</button>
 </div>
 
-<!-- たまごえらび（さいしょの1かい） -->
+<!-- たまごえらび（さいしょの1かい／あたらしく そだてるとき） -->
 <div class="egg-overlay" id="egg-overlay">
   <h3>すきな たまごを えらんでね</h3>
   <div class="egg-lead">かだいを クリアして ほしを あつめると<br>たまごから かわいい いきものが うまれて そだつよ！</div>
   <div class="egg-grid" id="egg-grid"></div>
+</div>
+
+<!-- そだてた ずかん -->
+<div class="gallery-overlay" id="gallery-overlay">
+  <h3>そだてた ずかん</h3>
+  <div class="egg-lead">さいごまで そだてた いきものが ここに ならぶよ！</div>
+  <div class="gallery-list" id="gallery-list"></div>
+  <button class="celebrate-close" id="gallery-close">とじる</button>
 </div>
 
 <!-- ぜんぶできた おいわい -->
@@ -737,6 +850,7 @@ if (typeof state.stars !== "number") state.stars = 0;
 if (!Array.isArray(state.celebratedDates)) state.celebratedDates = [];
 if (!Array.isArray(state.customPresets)) state.customPresets = [];
 if (!state.egg) state.egg = null;
+if (!Array.isArray(state.completedSpecies)) state.completedSpecies = [];
 
 /* ================= 日付ユーティリティ ================= */
 const DOW = ["にち", "げつ", "か", "すい", "もく", "きん", "ど"];
@@ -918,6 +1032,10 @@ function currentLevel() {
   }
   return lv;
 }
+function isFinalStage() {
+  const LV = getLevels();
+  return currentLevel() === LV.length - 1;
+}
 
 function renderChara(mood = "normal") {
   const LV = getLevels();
@@ -946,6 +1064,7 @@ function renderStars(animate) {
     bar.style.width = "100%";
     label.textContent = "さいこうレベル！ すごすぎる！";
   }
+  document.getElementById("new-egg-banner").classList.toggle("show", isFinalStage());
 }
 
 /* ================= セリフ ================= */
@@ -1173,7 +1292,8 @@ function buildEggPicker() {
   for (const egg of EGGS) {
     const b = document.createElement("button");
     b.className = "egg-choice";
-    b.innerHTML = `${eggSVG(egg)}<span class="egg-name">${egg.name}</span>`;
+    const doneBadge = state.completedSpecies.includes(egg.species) ? `<span class="egg-done-badge">そだてずみ</span>` : "";
+    b.innerHTML = `${doneBadge}${eggSVG(egg)}<span class="egg-name">${egg.name}</span>`;
     b.addEventListener("click", () => {
       state.egg = egg.id;
       saveState();
@@ -1185,6 +1305,48 @@ function buildEggPicker() {
     grid.appendChild(b);
   }
 }
+
+/* ================= あたらしい たまごへ ================= */
+document.getElementById("new-egg-btn").addEventListener("click", () => {
+  if (!confirm("あたらしい たまごを そだてる？\nいまの ★は 0に もどるよ（きろくは ずかんに のこるよ）")) return;
+  const sp = currentEgg().species;
+  if (!state.completedSpecies.includes(sp)) state.completedSpecies.push(sp);
+  state.egg = null;
+  state.stars = 0;
+  saveState();
+  buildEggPicker();
+  document.getElementById("egg-overlay").classList.add("open");
+});
+
+/* ================= そだてた ずかん ================= */
+function buildGallery() {
+  const list = document.getElementById("gallery-list");
+  list.innerHTML = "";
+  if (state.completedSpecies.length === 0) {
+    list.innerHTML = `<div class="gallery-empty">まだ そだてた いきものが いないよ。<br>さいごまで そだてて ずかんに とうろくしよう！</div>`;
+    return;
+  }
+  for (const key of state.completedSpecies) {
+    const sp = SPECIES[key];
+    if (!sp) continue;
+    const stages = sp.stages.map(st => `
+      <div class="gallery-stage">
+        <img src="${st.img}" alt="${st.name}">
+        <span>${st.name}</span>
+      </div>`).join("");
+    const card = document.createElement("div");
+    card.className = "gallery-card";
+    card.innerHTML = `<div class="gallery-card-title">${sp.name}</div><div class="gallery-stages">${stages}</div>`;
+    list.appendChild(card);
+  }
+}
+document.getElementById("gallery-btn").addEventListener("click", () => {
+  buildGallery();
+  document.getElementById("gallery-overlay").classList.add("open");
+});
+document.getElementById("gallery-close").addEventListener("click", () => {
+  document.getElementById("gallery-overlay").classList.remove("open");
+});
 
 /* ================= 追加モーダル ================= */
 const PRESETS = [
@@ -1305,7 +1467,7 @@ document.getElementById("btn-save").addEventListener("click", () => {
   });
   // はじめての かだいは つぎから えらべるように こうほに とうろく
   const known = PRESETS.some(p => p.name === name) || state.customPresets.some(p => p.name === name);
-  if (!known) state.customPresets.push({ name, icon: modalIcon });
+  if (!known) state.customPresets.unshift({ name, icon: modalIcon });
   // 未完了に戻るのでその日のおいわい記録をリセット
   const idx = state.celebratedDates.indexOf(date);
   if (idx >= 0) state.celebratedDates.splice(idx, 1);
