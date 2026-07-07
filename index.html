@@ -1412,6 +1412,7 @@ function buildEggPicker() {
     const doneBadge = state.completedSpecies.includes(egg.species) ? `<span class="egg-done-badge">そだてずみ</span>` : "";
     b.innerHTML = `${doneBadge}${eggSVG(egg)}<span class="egg-name">${egg.name}</span>`;
     b.addEventListener("click", () => {
+      if (!confirm(`「${egg.name}」に きめて いい？\nこの たまごを そだてるよ！`)) return;
       state.egg = egg.id;
       saveState();
       document.getElementById("egg-overlay").classList.remove("open");
@@ -1467,11 +1468,12 @@ document.getElementById("gallery-close").addEventListener("click", () => {
 
 /* ================= タイマー ================= */
 const TIMER_PRESETS = [
-  { label: "1ぷん", sec: 60 },
-  { label: "3ぷん", sec: 180 },
-  { label: "5ふん", sec: 300 },
-  { label: "10ぷん", sec: 600 },
+  { label: "60ぷん", sec: 3600 },
+  { label: "45ふん", sec: 2700 },
+  { label: "30ぷん", sec: 1800 },
   { label: "15ふん", sec: 900 },
+  { label: "5ふん", sec: 300 },
+  { label: "1ぷん", sec: 60 },
 ];
 let timerTotal = 300;      // えらんだ じかん（びょう）
 let timerLeft = 300;       // のこり（びょう。小数OK）
