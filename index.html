@@ -70,16 +70,37 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    --chara-scale: 1.04;
     transform: scale(1.04);
     transform-origin: center;
-    transition: transform 0.3s;
+    animation: chara-idle 3.2s ease-in-out infinite;
   }
-  .chara.egg-fit { transform: scale(0.96); }
+  .chara.egg-fit {
+    --chara-scale: 0.96;
+    transform: scale(0.96);
+    transform-origin: 50% 78%;
+    animation: egg-rock 3.6s ease-in-out infinite;
+  }
   .chara.happy { animation: bounce 0.6s ease 2; }
   @keyframes bounce {
     0%, 100% { transform: translateY(0) scale(1); }
     30% { transform: translateY(-12px) scale(1.05); }
     60% { transform: translateY(0) scale(0.97); }
+  }
+  /* いきものが しずかに こきゅうしているような うごき */
+  @keyframes chara-idle {
+    0%, 100% { transform: scale(var(--chara-scale, 1)) translateY(0); }
+    50% { transform: scale(calc(var(--chara-scale, 1) * 1.035)) translateY(-3px); }
+  }
+  /* たまごが ゆらゆら ゆれる */
+  @keyframes egg-rock {
+    0%, 100% { transform: scale(var(--chara-scale, 1)) rotate(0deg); }
+    30% { transform: scale(var(--chara-scale, 1)) rotate(-3deg); }
+    70% { transform: scale(var(--chara-scale, 1)) rotate(3deg); }
+  }
+  /* うごきを ひかえめに したい端末むけ */
+  @media (prefers-reduced-motion: reduce) {
+    .chara, .egg-choice svg, .levelup-img, .celebrate-chara { animation: none !important; }
   }
   .speech { flex: 1; min-width: 0; }
   .speech-text {
@@ -577,7 +598,7 @@
     border: 1px solid var(--line);
     background: #f8f5f0;
     object-fit: cover;
-    animation: pop 0.5s cubic-bezier(.34,1.56,.64,1);
+    animation: pop 0.5s cubic-bezier(.34,1.56,.64,1), chara-idle 3.2s ease-in-out 0.6s infinite;
   }
   .levelup-name {
     font-size: 22px;
@@ -628,7 +649,19 @@
     position: relative;
   }
   .egg-choice:active { transform: scale(0.94); }
-  .egg-choice svg { width: 104px; height: 104px; }
+  .egg-choice svg {
+    width: 104px;
+    height: 104px;
+    transform-origin: 50% 82%;
+    animation: egg-rock-pick 3s ease-in-out infinite;
+  }
+  .egg-choice:nth-child(2n) svg { animation-delay: 0.6s; }
+  .egg-choice:nth-child(3n) svg { animation-delay: 1.2s; }
+  @keyframes egg-rock-pick {
+    0%, 100% { transform: rotate(0deg); }
+    30% { transform: rotate(-4deg); }
+    70% { transform: rotate(4deg); }
+  }
   .egg-name { font-size: 14px; font-weight: bold; }
   .egg-done-badge {
     position: absolute;
