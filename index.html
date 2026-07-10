@@ -801,6 +801,86 @@
   .timer-start.running { background: var(--gold); box-shadow: 0 5px 14px rgba(232, 168, 32, 0.4); }
   .timer-ctrl:active { transform: scale(0.96); }
 
+  /* プロフィール（ログイン） */
+  #login-overlay { z-index: 210; }
+  .profile-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 380px;
+    margin-bottom: 8px;
+  }
+  .profile-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    padding: 18px;
+    font-size: 19px;
+    font-weight: bold;
+    transition: transform 0.15s;
+  }
+  .profile-card:active { transform: scale(0.96); }
+  .profile-add {
+    margin-top: 8px;
+    background: none;
+    border: 1.5px dashed var(--muted);
+    color: var(--muted);
+    border-radius: 999px;
+    padding: 12px 22px;
+    font-size: 14px;
+    font-weight: bold;
+  }
+
+  /* えさやりボタン */
+  .feed-btn {
+    margin-top: 10px;
+    background: var(--green);
+    color: #fff;
+    font-size: 15px;
+    font-weight: bold;
+    border-radius: 999px;
+    padding: 11px 22px;
+    box-shadow: 0 4px 12px rgba(108, 180, 76, 0.4);
+    transition: transform 0.15s;
+  }
+  .feed-btn:active { transform: scale(0.95); }
+  .feed-btn.no-food { background: #c9c9c4; box-shadow: none; }
+
+  /* ずかんの がぞう かくだい */
+  .lightbox {
+    position: fixed;
+    top: 0; right: 0; bottom: 0; left: 0;
+    background: rgba(31, 31, 30, 0.85);
+    z-index: 300;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 24px;
+    text-align: center;
+  }
+  .lightbox.open { display: flex; }
+  .lightbox img {
+    max-width: 88vw;
+    max-height: 64vh;
+    border-radius: 20px;
+    background: #f8f5f0;
+    animation: pop 0.3s cubic-bezier(.34,1.56,.64,1);
+  }
+  .lightbox-name {
+    background: var(--gold-soft);
+    color: #9a6c08;
+    font-size: 17px;
+    font-weight: bold;
+    border-radius: 999px;
+    padding: 6px 22px;
+  }
+  .lightbox-hint { color: #cfcfca; font-size: 12px; font-weight: bold; }
+  .gallery-stage img { cursor: pointer; }
+
   /* 紙吹雪 */
   .confetti {
     position: fixed;
@@ -845,18 +925,20 @@
     <div class="speech">
       <div class="speech-text" id="speech-text">きょうも いっしょに がんばろう！</div>
       <span class="level-tag" id="level-tag">レベル1 たまごヤモ</span>
+      <div><button class="feed-btn" id="feed-btn">🪲 えさを あげる</button></div>
     </div>
   </div>
 
   <!-- ほし＆レベル -->
   <div class="star-bar">
-    <div class="star-count">⭐ <span class="num" id="star-num">0</span> こ</div>
+    <div class="star-count"><span id="food-emoji">🪲</span> <span class="num" id="food-num">0</span> こ</div>
     <div class="level-progress">
-      <div class="label" id="level-label">つぎのレベルまで あと 5こ</div>
+      <div class="label" id="level-label">つぎの せいちょうまで えさ あと 3かい</div>
       <div class="bar-outer"><div class="bar-inner" id="level-bar"></div></div>
     </div>
     <button class="gallery-btn" id="timer-btn" aria-label="タイマー">⏰</button>
     <button class="gallery-btn" id="gallery-btn" aria-label="そだてた ずかん">📖</button>
+    <button class="gallery-btn" id="user-btn" aria-label="つかうひとを かえる">👤</button>
   </div>
 
   <!-- さいごまで そだてたら あたらしい たまごへ -->
@@ -936,10 +1018,18 @@
   <button class="celebrate-close" id="levelup-close">やったー！</button>
 </div>
 
+<!-- だれが つかう？（プロフィールえらび） -->
+<div class="egg-overlay" id="login-overlay">
+  <h3>だれが つかう？</h3>
+  <div class="egg-lead">じぶんの なまえを えらんでね</div>
+  <div class="profile-list" id="profile-list"></div>
+  <button class="profile-add" id="profile-add">＋ あたらしい なかまを つくる</button>
+</div>
+
 <!-- たまごえらび（さいしょの1かい／あたらしく そだてるとき） -->
 <div class="egg-overlay" id="egg-overlay">
   <h3>すきな たまごを えらんでね</h3>
-  <div class="egg-lead">かだいを クリアして ほしを あつめると<br>たまごから かわいい いきものが うまれて そだつよ！</div>
+  <div class="egg-lead">かだいを クリアすると えさが もらえるよ！<br>えさを あげて たまごから そだてよう！</div>
   <div class="egg-grid" id="egg-grid"></div>
 </div>
 
@@ -970,6 +1060,13 @@
   <button class="celebrate-close" id="timer-close">とじる</button>
 </div>
 
+<!-- ずかんの がぞう かくだい -->
+<div class="lightbox" id="lightbox">
+  <img id="lightbox-img" alt="そだてた いきもの">
+  <div class="lightbox-name" id="lightbox-name"></div>
+  <div class="lightbox-hint">がめんを タップすると とじるよ</div>
+</div>
+
 <!-- ぜんぶできた おいわい -->
 <div class="celebrate-overlay" id="celebrate-overlay">
   <img class="celebrate-chara" id="celebrate-chara" alt="ヤモちゃん">
@@ -982,25 +1079,58 @@
 "use strict";
 
 /* ================= データ ================= */
-const STORE_KEY = "studyschedule-v1";
+/* ---- プロフィール（つかうひとごとの データ） ---- */
+const LEGACY_KEY = "studyschedule-v1";
+const PROFILES_KEY = "ss2-profiles";
+const CURRENT_KEY = "ss2-current";
+function stateKey(id) { return "ss2-state-" + id; }
 
-function loadState() {
+function loadProfiles() {
   try {
-    const raw = localStorage.getItem(STORE_KEY);
+    const raw = localStorage.getItem(PROFILES_KEY);
     if (raw) return JSON.parse(raw);
   } catch (e) { /* こわれたデータは無視 */ }
-  return { tasks: [], stars: 0, celebratedDates: [] };
+  return [];
+}
+function saveProfiles() { localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles)); }
+let profiles = loadProfiles();
+
+/* プロフィール機能まえの データが あれば「わたし」として ひきつぐ */
+if (profiles.length === 0 && localStorage.getItem(LEGACY_KEY)) {
+  const legacyId = "p" + Date.now();
+  profiles = [{ id: legacyId, name: "わたし", pin: null }];
+  localStorage.setItem(stateKey(legacyId), localStorage.getItem(LEGACY_KEY));
+  localStorage.removeItem(LEGACY_KEY);
+  localStorage.setItem(CURRENT_KEY, legacyId);
+  saveProfiles();
+}
+
+let currentProfileId = localStorage.getItem(CURRENT_KEY);
+if (!profiles.some(p => p.id === currentProfileId)) currentProfileId = null;
+
+function normalizeState(s) {
+  if (!Array.isArray(s.tasks)) s.tasks = [];
+  if (!Array.isArray(s.celebratedDates)) s.celebratedDates = [];
+  if (!Array.isArray(s.customPresets)) s.customPresets = [];
+  if (!s.egg) s.egg = null;
+  if (!Array.isArray(s.completedSpecies)) s.completedSpecies = [];
+  /* 旧バージョンの ほし(stars)は そだち(fed)に ひきつぐ */
+  if (typeof s.fed !== "number") s.fed = typeof s.stars === "number" ? s.stars : 0;
+  if (typeof s.food !== "number") s.food = 0;
+  delete s.stars;
+  return s;
+}
+function loadStateFor(id) {
+  try {
+    const raw = localStorage.getItem(stateKey(id));
+    if (raw) return normalizeState(JSON.parse(raw));
+  } catch (e) { /* こわれたデータは無視 */ }
+  return normalizeState({});
 }
 function saveState() {
-  localStorage.setItem(STORE_KEY, JSON.stringify(state));
+  if (currentProfileId) localStorage.setItem(stateKey(currentProfileId), JSON.stringify(state));
 }
-const state = loadState();
-if (!Array.isArray(state.tasks)) state.tasks = [];
-if (typeof state.stars !== "number") state.stars = 0;
-if (!Array.isArray(state.celebratedDates)) state.celebratedDates = [];
-if (!Array.isArray(state.customPresets)) state.customPresets = [];
-if (!state.egg) state.egg = null;
-if (!Array.isArray(state.completedSpecies)) state.completedSpecies = [];
+let state = currentProfileId ? loadStateFor(currentProfileId) : normalizeState({});
 
 /* ================= 日付ユーティリティ ================= */
 const DOW = ["にち", "げつ", "か", "すい", "もく", "きん", "ど"];
@@ -1104,60 +1234,68 @@ function currentEgg() {
    うまれる いきものは ここに ついかするだけで ふやせます。
    - name   : ずかんの なまえ
    - nick   : セリフで つかう よびな（「{nick}も うれしいよ〜！」など）
-   - stages : せいちょうの だんかい（need = ひつような ほしの数、
+   - food   : えさの アイコン（🪲 むし / 🐚 かい など）
+   - stages : せいちょうの だんかい（need = えさを あげた かいすう、
               img = 画像。data URI でも "assets/xxx.png" のような
               ファイルパスでも OK。だんかいの数は じゆう）
+              frames: [画像1, 画像2, ...] を つけると パラパラまんがの
+              コマおくりで うごきます（imgの かわりに つかわれます）
    たまご（EGGS）の species に キーを かくと、そのたまごから うまれます。
    画像を SPECIES_IMG に 埋めこまず、ファイルパスを かいても OK です。 */
 const SPECIES = {
   yamori: {
     name: "クロヤモリ",
     nick: "ヤモちゃん",
+    food: "🪲",
     stages: [
       { need: 3,  name: "うまれたてヤモ", img: SPECIES_IMG.yamori[0] },
-      { need: 6,  name: "こどもヤモ",     img: SPECIES_IMG.yamori[1] },
-      { need: 10, name: "おとなヤモ",     img: SPECIES_IMG.yamori[2] },
-      { need: 15, name: "ママヤモ",       img: SPECIES_IMG.yamori[3] },
+      { need: 9,  name: "こどもヤモ",     img: SPECIES_IMG.yamori[1] },
+      { need: 13, name: "おとなヤモ",     img: SPECIES_IMG.yamori[2] },
+      { need: 18, name: "ママヤモ",       img: SPECIES_IMG.yamori[3] },
     ],
   },
   highyellow: {
     name: "ハイイエローレオパ",
     nick: "レオちゃん",
+    food: "🪲",
     stages: [
       { need: 3,  name: "うまれたてレオ", img: SPECIES_IMG.highyellow[0] },
-      { need: 6,  name: "こどもレオ",     img: SPECIES_IMG.highyellow[1] },
-      { need: 10, name: "おとなレオ",     img: SPECIES_IMG.highyellow[2] },
-      { need: 15, name: "ママレオ",       img: SPECIES_IMG.highyellow[3] },
+      { need: 9,  name: "こどもレオ",     img: SPECIES_IMG.highyellow[1] },
+      { need: 13, name: "おとなレオ",     img: SPECIES_IMG.highyellow[2] },
+      { need: 18, name: "ママレオ",       img: SPECIES_IMG.highyellow[3] },
     ],
   },
   tangerine: {
     name: "タンジェリンレオパ",
     nick: "タンちゃん",
+    food: "🪲",
     stages: [
       { need: 3,  name: "うまれたてタン", img: SPECIES_IMG.tangerine[0] },
-      { need: 6,  name: "こどもタン",     img: SPECIES_IMG.tangerine[1] },
-      { need: 10, name: "おとなタン",     img: SPECIES_IMG.tangerine[2] },
-      { need: 15, name: "ママタン",       img: SPECIES_IMG.tangerine[3] },
+      { need: 9,  name: "こどもタン",     img: SPECIES_IMG.tangerine[1] },
+      { need: 13, name: "おとなタン",     img: SPECIES_IMG.tangerine[2] },
+      { need: 18, name: "ママタン",       img: SPECIES_IMG.tangerine[3] },
     ],
   },
   seaturtle: {
     name: "アオウミガメ",
     nick: "カメちゃん",
+    food: "🐚",
     stages: [
       { need: 3,  name: "うまれたてカメ", img: SPECIES_IMG.seaturtle[0] },
-      { need: 6,  name: "こどもカメ",     img: SPECIES_IMG.seaturtle[1] },
-      { need: 10, name: "おとなカメ",     img: SPECIES_IMG.seaturtle[2] },
-      { need: 15, name: "ママガメ",       img: SPECIES_IMG.seaturtle[3] },
+      { need: 9,  name: "こどもカメ",     img: SPECIES_IMG.seaturtle[1] },
+      { need: 13, name: "おとなカメ",     img: SPECIES_IMG.seaturtle[2] },
+      { need: 18, name: "ママガメ",       img: SPECIES_IMG.seaturtle[3] },
     ],
   },
   snake: {
     name: "ミドリヘビ",
     nick: "ヘビちゃん",
+    food: "🪲",
     stages: [
       { need: 3,  name: "うまれたてヘビ", img: SPECIES_IMG.snake[0] },
-      { need: 6,  name: "こどもヘビ",     img: SPECIES_IMG.snake[1] },
-      { need: 10, name: "おとなヘビ",     img: SPECIES_IMG.snake[2] },
-      { need: 15, name: "ママヘビ",       img: SPECIES_IMG.snake[3] },
+      { need: 9,  name: "こどもヘビ",     img: SPECIES_IMG.snake[1] },
+      { need: 13, name: "おとなヘビ",     img: SPECIES_IMG.snake[2] },
+      { need: 18, name: "ママヘビ",       img: SPECIES_IMG.snake[3] },
     ],
   },
 };
@@ -1178,7 +1316,7 @@ function currentLevel() {
   const LV = getLevels();
   let lv = 0;
   for (let i = 0; i < LV.length; i++) {
-    if (state.stars >= LV[i].need) lv = i;
+    if (state.fed >= LV[i].need) lv = i;
   }
   return lv;
 }
@@ -1187,33 +1325,59 @@ function isFinalStage() {
   return currentLevel() === LV.length - 1;
 }
 
+/* パラパラまんが（コマ送り）エンジン：
+   stage.frames が あれば じゅんばんに 切りかえて うごかす */
+let charaFrames = [];
+let charaFrameIdx = 0;
+let charaFrameTimer = null;
+function setCharaFrames(frames) {
+  const sameFrames = frames.length === charaFrames.length && frames.every((f, i) => f === charaFrames[i]);
+  if (sameFrames) return;
+  if (charaFrameTimer) { clearInterval(charaFrameTimer); charaFrameTimer = null; }
+  charaFrames = frames;
+  charaFrameIdx = 0;
+  document.getElementById("chara").src = frames[0];
+  if (frames.length > 1) {
+    charaFrameTimer = setInterval(() => {
+      charaFrameIdx = (charaFrameIdx + 1) % charaFrames.length;
+      document.getElementById("chara").src = charaFrames[charaFrameIdx];
+    }, 450);
+  }
+}
 function renderChara(mood = "normal") {
   const LV = getLevels();
   const lv = currentLevel();
   const img = document.getElementById("chara");
-  img.src = LV[lv].img;
+  setCharaFrames(LV[lv].frames || [LV[lv].img]);
   img.classList.toggle("egg-fit", LV[lv].fit === "contain");
   img.classList.toggle("happy", mood === "happy");
   document.getElementById("level-tag").textContent = `レベル${lv + 1} ${LV[lv].name}`;
 }
 
-/* ================= ほし＆レベル表示 ================= */
+/* ================= えさ＆そだち表示 ================= */
 function renderStars(animate) {
   const LV = getLevels();
   const lv = currentLevel();
-  document.getElementById("star-num").textContent = state.stars;
+  const foodEmoji = currentSpecies().food || "🪲";
+  document.getElementById("food-emoji").textContent = foodEmoji;
+  document.getElementById("food-num").textContent = state.food;
   const next = LV[lv + 1];
   const bar = document.getElementById("level-bar");
   const label = document.getElementById("level-label");
   if (next) {
     const prev = LV[lv].need;
-    const pct = ((state.stars - prev) / (next.need - prev)) * 100;
+    const pct = ((state.fed - prev) / (next.need - prev)) * 100;
     bar.style.width = pct + "%";
-    label.textContent = `つぎのレベルまで あと ${next.need - state.stars}こ`;
+    label.textContent = `つぎの せいちょうまで えさ あと ${next.need - state.fed}かい`;
   } else {
     bar.style.width = "100%";
     label.textContent = "さいこうレベル！ すごすぎる！";
   }
+  const feedBtn = document.getElementById("feed-btn");
+  feedBtn.textContent = lv === 0
+    ? `${foodEmoji} たまごに えさを あげる`
+    : `${foodEmoji} えさを あげる`;
+  feedBtn.classList.toggle("no-food", state.food <= 0);
   document.getElementById("new-egg-banner").classList.toggle("show", isFinalStage());
 }
 
@@ -1224,7 +1388,7 @@ const CHEERS = [
   "その ちょうし！",
   "てんさい かも！？",
   "がんばったね！ えらい！",
-  "ピカピカの ほしを ゲット！",
+  "えさを ゲット！ {nick}に あげよう！",
   "{nick}も うれしいよ〜！",
   "かっこいい！ つぎも いこう！",
 ];
@@ -1325,19 +1489,15 @@ function toggleTask(id, ev) {
   const t = state.tasks.find(x => x.id === id);
   if (!t) return;
   if (!t.done) {
-    const lvBefore = currentLevel();
     t.done = true;
-    state.stars += 1;
+    state.food += 1;
     saveState();
-    flyStar(ev.clientX, ev.clientY);
+    flyFood(ev.clientX, ev.clientY);
     confettiBurst(14);
     say(pickLine(CHEERS));
     renderChara("happy");
     setTimeout(() => renderChara("normal"), 1500);
     render();
-    // レベルアップしたら せいちょうした すがたを おおきく みせる
-    const lvAfter = currentLevel();
-    if (lvAfter > lvBefore) queueOverlay(() => openLevelUp(lvAfter));
     // その日ぜんぶ完了なら おいわい
     const tasks = tasksOf(selectedDate);
     if (tasks.every(x => x.done) && !state.celebratedDates.includes(selectedDate)) {
@@ -1347,9 +1507,9 @@ function toggleTask(id, ev) {
     }
     runOverlayQueue();
   } else {
-    // まちがえてタップしたとき用：もどすと ほしも 1こ もどる
+    // まちがえてタップしたとき用：もどすと えさも 1こ もどる
     t.done = false;
-    state.stars = Math.max(0, state.stars - 1);
+    state.food = Math.max(0, state.food - 1);
     const idx = state.celebratedDates.indexOf(selectedDate);
     if (idx >= 0) state.celebratedDates.splice(idx, 1);
     saveState();
@@ -1381,15 +1541,44 @@ function confettiBurst(n) {
     setTimeout(() => el.remove(), 3000);
   }
 }
-function flyStar(x, y) {
+function flyFood(x, y) {
   const el = document.createElement("div");
   el.className = "fly-star";
-  el.textContent = "⭐ +1";
+  el.textContent = (currentSpecies().food || "🪲") + " +1";
   el.style.left = (x - 30) + "px";
   el.style.top = (y - 20) + "px";
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 1000);
 }
+
+/* ================= えさやり ================= */
+const FEED_CHEERS = [
+  "もぐもぐ… おいしい！",
+  "ぱくっ！ ありがとう！",
+  "もぐもぐ… おおきく なるぞ〜！",
+  "ごちそうさま！ げんき もりもり！",
+];
+document.getElementById("feed-btn").addEventListener("click", (ev) => {
+  if (!state.egg) return;
+  if (state.food <= 0) {
+    say(`えさが ないよ！ かだいを クリアして ${currentSpecies().food || "🪲"} を あつめよう！`);
+    return;
+  }
+  const lvBefore = currentLevel();
+  state.food -= 1;
+  state.fed += 1;
+  saveState();
+  flyFood(ev.clientX, ev.clientY);
+  say(FEED_CHEERS[Math.floor(Math.random() * FEED_CHEERS.length)]);
+  renderChara("happy");
+  setTimeout(() => renderChara("normal"), 1500);
+  render();
+  const lvAfter = currentLevel();
+  if (lvAfter > lvBefore) {
+    queueOverlay(() => openLevelUp(lvAfter));
+    runOverlayQueue();
+  }
+});
 
 /* ================= おいわい ================= */
 /* お祝い画面がかさなったとき用の順番待ち */
@@ -1459,11 +1648,11 @@ function buildEggPicker() {
 
 /* ================= あたらしい たまごへ ================= */
 document.getElementById("new-egg-btn").addEventListener("click", () => {
-  if (!confirm("あたらしい たまごを そだてる？\nいまの ★は 0に もどるよ（きろくは ずかんに のこるよ）")) return;
+  if (!confirm("あたらしい たまごを そだてる？\nそだちは 0に もどるよ（きろくは ずかんに のこるし、えさも のこるよ）")) return;
   const sp = currentEgg().species;
   if (!state.completedSpecies.includes(sp)) state.completedSpecies.push(sp);
   state.egg = null;
-  state.stars = 0;
+  state.fed = 0;
   saveState();
   buildEggPicker();
   document.getElementById("egg-overlay").classList.add("open");
@@ -1488,6 +1677,9 @@ function buildGallery() {
     const card = document.createElement("div");
     card.className = "gallery-card";
     card.innerHTML = `<div class="gallery-card-title">${sp.name}</div><div class="gallery-stages">${stages}</div>`;
+    card.querySelectorAll(".gallery-stage img").forEach((im, i) => {
+      im.addEventListener("click", () => openLightbox(im.src, `${sp.name}（${sp.stages[i].name}）`));
+    });
     list.appendChild(card);
   }
 }
@@ -1498,6 +1690,63 @@ document.getElementById("gallery-btn").addEventListener("click", () => {
 document.getElementById("gallery-close").addEventListener("click", () => {
   document.getElementById("gallery-overlay").classList.remove("open");
 });
+function openLightbox(src, name) {
+  document.getElementById("lightbox-img").src = src;
+  document.getElementById("lightbox-name").textContent = name;
+  document.getElementById("lightbox").classList.add("open");
+}
+document.getElementById("lightbox").addEventListener("click", () => {
+  document.getElementById("lightbox").classList.remove("open");
+});
+
+/* ================= ログイン（プロフィールえらび） ================= */
+function buildLoginList() {
+  const list = document.getElementById("profile-list");
+  list.innerHTML = "";
+  for (const p of profiles) {
+    const b = document.createElement("button");
+    b.className = "profile-card";
+    b.textContent = `👤 ${p.name}${p.pin ? " 🔒" : ""}`;
+    b.addEventListener("click", () => {
+      if (p.pin) {
+        const ans = prompt(`「${p.name}」の あいことば（すうじ）を いれてね`);
+        if (ans === null) return;
+        if (ans.trim() !== p.pin) { alert("あいことばが ちがうよ！"); return; }
+      }
+      loginAs(p.id);
+    });
+    list.appendChild(b);
+  }
+}
+function loginAs(id) {
+  currentProfileId = id;
+  localStorage.setItem(CURRENT_KEY, id);
+  state = loadStateFor(id);
+  document.getElementById("login-overlay").classList.remove("open");
+  buildEggPicker();
+  buildModalChoices();
+  const p = profiles.find(x => x.id === id);
+  say(`こんにちは ${p.name}！ ${pickLine(GREETINGS)}`);
+  render();
+  document.getElementById("egg-overlay").classList.toggle("open", !state.egg);
+}
+document.getElementById("profile-add").addEventListener("click", () => {
+  const name = prompt("なまえを いれてね（れい：はな）");
+  if (!name || !name.trim()) return;
+  let pin = prompt("あいことば（すうじ）を きめる？\nいらなければ なにも かかずに OK を おしてね");
+  pin = pin && pin.trim() ? pin.trim() : null;
+  const p = { id: "p" + Date.now() + Math.random().toString(36).slice(2, 6), name: name.trim().slice(0, 10), pin };
+  profiles.push(p);
+  saveProfiles();
+  buildLoginList();
+  loginAs(p.id);
+});
+function openLogin() {
+  buildLoginList();
+  document.getElementById("egg-overlay").classList.remove("open");
+  document.getElementById("login-overlay").classList.add("open");
+}
+document.getElementById("user-btn").addEventListener("click", openLogin);
 
 /* ================= タイマー ================= */
 const TIMER_PRESETS = [
@@ -1776,9 +2025,9 @@ document.getElementById("edit-btn").addEventListener("click", () => {
 
 /* ================= さいしょから やりなおす ================= */
 document.getElementById("reset-btn").addEventListener("click", () => {
-  if (!confirm("ほんとうに さいしょから やりなおす？\nかだい・ほし・そだてた きろくが ぜんぶ きえるよ。")) return;
+  if (!confirm("ほんとうに さいしょから やりなおす？\nいま つかっている ひとの かだい・えさ・そだてた きろくが ぜんぶ きえるよ。")) return;
   if (!confirm("さいごの かくにんだよ。ほんとうに ぜんぶ けして いい？\nこの そうさは もとに もどせません。")) return;
-  localStorage.removeItem(STORE_KEY);
+  if (currentProfileId) localStorage.removeItem(stateKey(currentProfileId));
   location.reload();
 });
 
@@ -1794,13 +2043,14 @@ function render() {
   renderTasks();
 }
 
-buildEggPicker();
 buildModalChoices();
 buildTimerPresets();
 setTimerPreset(300);
-say(pickLine(GREETINGS));
-render();
-if (!state.egg) document.getElementById("egg-overlay").classList.add("open");
+if (currentProfileId) {
+  loginAs(currentProfileId);
+} else {
+  openLogin();
+}
 </script>
 </body>
 </html>
