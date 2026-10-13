@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="やることボード">
+<meta name="theme-color" content="#fff8ec">
+<title>やることボード</title>
+<style>
+:root{
+  --bg:#fff8ec; --card:#ffffff; --ink:#3a2e22; --sub:#8a7a68; --line:#eadcc6;
+  --must:#e8504a; --must-bg:#fde4e2;
+  --better:#e9a400; --better-bg:#fff2c8;
+  --want:#2f86d6; --want-bg:#dcecfb;
+  --ok:#2fa85a; --star:#ffb400; --maru:#e8504a;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic",sans-serif;}
+body{padding:env(safe-area-inset-top) 16px 110px;max-width:1100px;margin:0 auto;}
+button{font:inherit;color:inherit;border:none;background:none;cursor:pointer}
+h1{font-size:30px;margin:16px 0 4px}
+h2{font-size:24px;margin:24px 0 10px;display:flex;align-items:center;gap:8px}
+.date{font-size:20px;color:var(--sub)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.card{background:var(--card);border-radius:22px;padding:14px;border:3px solid var(--line)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+
+/* やること カード */
+.item{display:flex;align-items:center;gap:12px;min-height:84px;padding:10px 12px;border-radius:20px;
+  border:4px solid transparent;background:var(--card);position:relative;text-align:left;width:100%}
+.item.must{border-color:var(--must);background:var(--must-bg)}
+.item.better{border-color:var(--better);background:var(--better-bg)}
+.item.want{border-color:var(--want);background:var(--want-bg)}
+.item .ic{font-size:44px;width:56px;text-align:center}
+.item .tx{flex:1;font-size:22px;font-weight:bold;line-height:1.3}
+.item .chk{width:58px;height:58px;border-radius:50%;border:4px dashed #bbb;background:#fff;
+  display:grid;place-items:center;font-size:34px}
+.item.done .chk{border:4px solid var(--maru);color:var(--maru)}
+.item.done .tx{opacity:.55}
+.item .starbtn{position:absolute;top:-12px;left:-8px;font-size:28px;filter:grayscale(1) opacity(.35)}
+.item .starbtn.on{filter:none}
+.item .del{position:absolute;top:-10px;right:-8px;width:32px;height:32px;border-radius:50%;
+  background:#fff;border:2px solid var(--line);font-size:16px;display:none}
+.editing .item .del{display:block}
+
+.say{font-size:26px;padding:4px 8px;border-radius:12px;background:#fff;border:2px solid var(--line)}
+.addbtn{min-height:84px;border-radius:20px;border:4px dashed var(--line);font-size:22px;
+  color:var(--sub);background:#fffdf8;width:100%}
+.legend span{padding:6px 12px;border-radius:999px;font-weight:bold;font-size:18px}
+.lg-must{background:var(--must-bg);color:var(--must)}
+.lg-better{background:var(--better-bg);color:#9a6c00}
+.lg-want{background:var(--want-bg);color:var(--want)}
+.note{color:var(--sub);font-size:17px}
+
+/* 下のタブ */
+nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:3px solid var(--line);
+  display:flex;justify-content:center;padding:6px 6px calc(6px + env(safe-area-inset-bottom));z-index:5}
+nav button{flex:1;max-width:200px;font-size:16px;padding:6px;border-radius:16px;display:flex;
+  flex-direction:column;align-items:center;gap:2px}
+nav button b{font-size:32px}
+nav button.on{background:var(--bg);font-weight:bold}
+
+/* カレンダー */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal .h{text-align:center;font-weight:bold;font-size:20px}
+.cal .d{aspect-ratio:1;background:#fff;border-radius:14px;border:2px solid var(--line);
+  position:relative;padding:4px;font-size:16px;overflow:hidden}
+.cal .d.today{border:4px solid var(--want)}
+.cal .d .mk{position:absolute;inset:16px 0 0 0;display:grid;place-items:center}
+.cal .d .mk svg{width:80%;height:80%}
+.cal .d .st{position:absolute;bottom:2px;right:4px;font-size:14px}
+.cal .d.blank{background:transparent;border:none}
+.sun{color:var(--must)} .sat{color:var(--want)}
+.big{font-size:44px;font-weight:bold}
+
+/* もくひょう（かいだん） */
+.goal{background:#fff;border-radius:22px;border:4px solid var(--line);padding:14px;margin-bottom:12px}
+.goal.must{border-color:var(--must)} .goal.better{border-color:var(--better)} .goal.want{border-color:var(--want)}
+.stairs{display:flex;align-items:flex-end;gap:4px;height:120px;margin:10px 0}
+.stairs div{flex:1;border-radius:8px 8px 0 0;background:#eee;position:relative}
+.stairs div.on{background:var(--ok)}
+.stairs div.next{outline:3px dashed var(--ok)}
+.stairs .me{position:absolute;top:-38px;left:50%;transform:translateX(-50%);font-size:30px}
+.goal .ctl{display:flex;gap:10px}
+.pill{padding:12px 18px;border-radius:16px;background:var(--bg);border:3px solid var(--line);font-size:20px;font-weight:bold}
+.pill.main{background:var(--ok);color:#fff;border-color:var(--ok)}
+
+/* ついか ダイアログ */
+dialog{border:none;border-radius:26px;padding:20px;max-width:720px;width:calc(100% - 32px);background:#fff}
+dialog::backdrop{background:rgba(60,40,20,.35)}
+.icons{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px;max-height:220px;overflow:auto}
+.icons button{font-size:38px;padding:6px;border-radius:14px;border:3px solid transparent;background:var(--bg)}
+.icons button.on{border-color:var(--want)}
+.choose{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.choose button{padding:14px 6px;border-radius:16px;border:4px solid var(--line);font-size:19px;font-weight:bold;background:#fff}
+.choose.when{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+.choose button.on{border-color:var(--ink);background:var(--bg)}
+.choose .c-must.on{border-color:var(--must);background:var(--must-bg)}
+.choose .c-better.on{border-color:var(--better);background:var(--better-bg)}
+.choose .c-want.on{border-color:var(--want);background:var(--want-bg)}
+input[type=text],input[type=number]{width:100%;font-size:24px;padding:12px;border-radius:14px;border:3px solid var(--line);font-family:inherit}
+dialog h3{margin:16px 0 8px;font-size:20px}
+
+/* ハナマル演出 */
+#cheer{position:fixed;inset:0;display:none;place-items:center;background:rgba(255,248,236,.85);z-index:20}
+#cheer.show{display:grid}
+#cheer .box{text-align:center;animation:pop .5s ease}
+#cheer svg{width:260px;height:260px}
+#cheer p{font-size:32px;font-weight:bold;margin:0}
+@keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+.toast{position:fixed;left:50%;bottom:120px;transform:translateX(-50%);background:var(--ink);color:#fff;
+  padding:12px 20px;border-radius:999px;font-size:20px;z-index:15;display:none}
+
+/* いんさつ */
+.print-only{display:none}
+@media print{
+  @page{size:A4 landscape;margin:10mm}
+  body{padding:0;background:#fff;max-width:none}
+  nav,.screen-only,#cheer,.toast{display:none!important}
+  .print-only{display:block}
+  .pcal{display:grid;grid-template-columns:repeat(7,1fr);border:2px solid #333}
+  .pcal div{border:1px solid #999;height:24mm;padding:2mm;font-size:14pt}
+  .pcal .h{height:auto;text-align:center;font-weight:bold;background:#f3f3f3}
+  .ptable{border-collapse:collapse;width:100%;font-size:13pt}
+  .ptable td,.ptable th{border:1px solid #666;height:10mm;text-align:center}
+  .ptable td:first-child{text-align:left;padding-left:2mm;width:60mm}
+  .pagebreak{break-before:page}
+  .pgoal{display:flex;gap:2mm;margin:3mm 0 6mm}
+  .pgoal span{flex:1;height:14mm;border:2px solid #333;border-radius:3mm}
+}
+</style>
+</head>
+<body>
+
+<div class="screen-only">
+  <header class="row" style="justify-content:space-between">
+    <div>
+      <h1 id="title">きょう</h1>
+      <div class="date" id="today-label"></div>
+    </div>
+    <div class="row">
+      <div class="card" style="padding:8px 14px;font-size:20px">🌸 ハナマル <b id="maru-count">0</b></div>
+      <button class="pill" id="edit-toggle">✏️ なおす</button>
+    </div>
+  </header>
+
+  <!-- きょう -->
+  <section id="v-today">
+    <div class="row legend" style="margin-top:10px">
+      <span class="lg-must">🔴 やること</span>
+      <span class="lg-better">🟡 やるといいこと</span>
+      <span class="lg-want">🔵 やりたいこと</span>
+    </div>
+    <p class="note" id="star-hint">⭐ を 1つ えらんで「きょうの いちばん」を きめよう</p>
+    <h2>🌅 あさの ルーティン</h2><div class="grid" id="l-am"></div>
+    <h2>🌙 よるの ルーティン</h2><div class="grid" id="l-pm"></div>
+    <h2>☀️ きょう やる</h2><div class="grid" id="l-today"></div>
+    <h2>📅 こんしゅう やる</h2><div class="grid" id="l-week"></div>
+  </section>
+
+  <!-- カレンダー -->
+  <section id="v-cal" hidden>
+    <div class="row" style="justify-content:space-between;margin:12px 0">
+      <button class="pill" id="prev-m">◀</button>
+      <div class="big" id="cal-title"></div>
+      <button class="pill" id="next-m">▶</button>
+    </div>
+    <div class="cal" id="cal"></div>
+    <p class="note">🌸 ハナマル＝あさ・よるの ルーティンと 🔴やること が ぜんぶ できた日 ／ ◯＝すこし できた日</p>
+    <h2>🗣️ こんしゅうの ふりかえり</h2>
+    <div class="card" id="review"></div>
+  </section>
+
+  <!-- もくひょう -->
+  <section id="v-goal" hidden>
+    <p class="note">ながい もくひょうは、かいだんを 1だんずつ のぼろう。</p>
+    <div id="goals"></div>
+    <button class="addbtn" id="add-goal">＋ もくひょうを ふやす</button>
+  </section>
+
+  <!-- いんさつ -->
+  <section id="v-print" hidden>
+    <h2>🖨️ かみに いんさつ</h2>
+    <div class="card">
+      <p style="font-size:20px">こんげつの カレンダー・ルーティン ひょう・もくひょうの かいだんを いんさつします。<br>
+      れいぞうこ などに はって、シールや ハナマルを 手で つけよう。</p>
+      <button class="pill main" onclick="buildPrint();window.print()">いんさつする</button>
+      <p class="note">（iPad では きょうゆう ボタン →「プリント」でも できます）</p>
+    </div>
+  </section>
+</div>
+
+<div class="print-only" id="print"></div>
+
+<nav class="screen-only">
+  <button data-v="today" class="on"><b>☀️</b>きょう</button>
+  <button data-v="cal"><b>🌸</b>カレンダー</button>
+  <button data-v="goal"><b>🪜</b>もくひょう</button>
+  <button data-v="print"><b>🖨️</b>いんさつ</button>
+</nav>
+
+<!-- ついか -->
+<dialog id="dlg">
+  <form method="dialog" id="dlg-form">
+    <div class="row" style="justify-content:space-between">
+      <h2 style="margin:0" id="dlg-title">なにを する？</h2>
+      <button value="cancel" class="say">✖️</button>
+    </div>
+    <h3>① えを えらぶ</h3>
+    <div class="icons" id="icons"></div>
+    <h3>② なまえ（かかなくても OK）</h3>
+    <input type="text" id="f-text" placeholder="れい：はみがき" autocomplete="off">
+    <h3>③ どれかな？</h3>
+    <div class="choose" id="f-cat">
+      <button type="button" class="c-must" data-c="must">🔴<br>やること</button>
+      <button type="button" class="c-better" data-c="better">🟡<br>やるといいこと</button>
+      <button type="button" class="c-want" data-c="want">🔵<br>やりたいこと</button>
+    </div>
+    <div id="when-wrap">
+      <h3>④ いつ？</h3>
+      <div class="choose when" id="f-when">
+        <button type="button" data-w="am">🌅 まいあさ</button>
+        <button type="button" data-w="pm">🌙 まいばん</button>
+        <button type="button" data-w="today">☀️ きょう</button>
+        <button type="button" data-w="week">📅 こんしゅう</button>
+      </div>
+    </div>
+    <div id="steps-wrap" hidden>
+      <h3>④ かいだんは なんだん？</h3>
+      <input type="number" id="f-steps" min="2" max="30" value="10">
+    </div>
+    <p style="text-align:right;margin-top:18px"><button type="button" class="pill main" id="f-ok">できた！</button></p>
+  </form>
+</dialog>
+
+<div id="cheer"><div class="box"><div id="cheer-mark"></div><p id="cheer-msg">ハナマル！</p></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+const KEY = 'yarukoto-v1';
+const ICONS = ['🪥','👕','🎒','📚','✏️','🧮','📖','🛁','🍚','🥛','🧹','🌱','🐶','🎹','⚽','🏊','🚲','🎨','🧩','🎮','📺','🛏️','⏰','👟','🙏','🧸','🍎','💧','🗑️','🧺','✉️','🌟','🎂','🏃','🎵','🔤'];
+const CAT = {must:'やること',better:'やるといいこと',want:'やりたいこと'};
+const WD = ['日','月','火','水','木','金','土'];
+
+const defaults = () => ({
+  items:[
+    {id:'r1',icon:'⏰',text:'じぶんで おきる',cat:'must',when:'am'},
+    {id:'r2',icon:'👕',text:'きがえる',cat:'must',when:'am'},
+    {id:'r3',icon:'🪥',text:'はみがき',cat:'must',when:'am'},
+    {id:'r4',icon:'🎒',text:'あしたの じゅんび',cat:'must',when:'pm'},
+    {id:'r5',icon:'📖',text:'ほんを よむ',cat:'better',when:'pm'},
+    {id:'r6',icon:'🪥',text:'はみがき',cat:'must',when:'pm'},
+  ],
+  goals:[{id:'g1',icon:'🚲',text:'じてんしゃに のれる',cat:'want',steps:10,done:0}],
+  log:{}, // 'YYYY-MM-DD' -> {done:[id], star:id}
+});
+let S;
+try { S = JSON.parse(localStorage.getItem(KEY)) || defaults(); } catch { S = defaults(); }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {} };
+
+const pad = n => String(n).padStart(2,'0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const weekKey = d => { const m = new Date(d); m.setDate(m.getDate() - ((m.getDay()+6)%7)); return 'w'+ymd(m); };
+const now = () => new Date();
+const dayLog = k => (S.log[k] ||= {done:[]});
+const $ = s => document.querySelector(s);
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const say = t => { try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang='ja-JP'; u.rate=.9; speechSynthesis.speak(u);} catch {} };
+const toast = t => { const el=$('#toast'); el.textContent=t; el.style.display='block'; clearTimeout(toast.t); toast.t=setTimeout(()=>el.style.display='none',2200); };
+
+const maruSVG = (full=true) => full
+  ? `<svg viewBox="0 0 100 100"><g fill="none" stroke="#e8504a" stroke-width="5" stroke-linecap="round">
+     <path d="M50 18c18 0 30 13 30 30s-14 32-32 32-30-14-30-31c0-15 10-27 26-30 16-3 34 6 38 22"/>
+     <path d="M50 30c10-14 26-12 26 2s-16 14-16 14M70 46c16-2 22 14 10 22s-18-6-18-6M64 70c6 14-6 24-16 16s0-18 0-18M40 70c-8 12-24 8-22-4s16-12 16-12M30 48c-16-4-18-20-4-24s20 8 20 8"/></g></svg>`
+  : `<svg viewBox="0 0 100 100"><circle cx="50" cy="52" r="30" fill="none" stroke="#e8504a" stroke-width="5" opacity=".6"/></svg>`;
+
+/* その日の けっか：full=ハナマル, part=すこし, null=なし（×は つけない） */
+function dayResult(k){
+  const L = S.log[k]; if (!L || !L.done.length) return null;
+  const need = [...S.items.filter(i=>i.when==='am'||i.when==='pm'), ...S.items.filter(i=>i.when==='today'&&i.date===k)]
+    .filter(i=>i.cat==='must' || i.when==='am' || i.when==='pm').map(i=>i.id);
+  const all = need.length && need.every(id=>L.done.includes(id));
+  return all ? 'full' : 'part';
+}
+function maruCount(){ return Object.keys(S.log).filter(k=>dayResult(k)==='full').length; }
+
+/* ---------- きょう ---------- */
+function itemsFor(when){
+  const t = now(), k = ymd(t), w = weekKey(t);
+  return S.items.filter(i => i.when===when &&
+    (when==='today' ? i.date===k : when==='week' ? i.week===w : true));
+}
+function isDone(i){
+  const t = now();
+  if (i.when==='week') return !!(S.log[weekKey(t)]?.done.includes(i.id));
+  return !!(S.log[ymd(t)]?.done.includes(i.id));
+}
+function card(i){
+  const k = ymd(now()), star = S.log[k]?.star === i.id;
+  return `<div style="position:relative"><button class="item ${i.cat} ${isDone(i)?'done':''}" data-id="${i.id}">
+    <span class="ic">${i.icon}</span><span class="tx">${esc(i.text||'')}</span>
+    <span class="chk">${isDone(i)?'◎':''}</span></button>
+    <button class="starbtn ${star?'on':''}" data-star="${i.id}" aria-label="いちばん">⭐</button>
+    <button class="del" data-del="${i.id}" aria-label="けす">✖️</button></div>`;
+}
+function renderToday(){
+  const d = now();
+  $('#today-label').textContent = `${d.getMonth()+1}月${d.getDate()}日（${WD[d.getDay()]}）`;
+  [['am','#l-am'],['pm','#l-pm'],['today','#l-today'],['week','#l-week']].forEach(([w,sel])=>{
+    $(sel).innerHTML = itemsFor(w).map(card).join('') + `<button class="addbtn" data-add="${w}">＋ ふやす</button>`;
+  });
+  const st = S.log[ymd(d)]?.star, si = S.items.find(i=>i.id===st);
+  $('#star-hint').textContent = si ? `⭐ きょうの いちばん：${si.icon} ${si.text||''}` : '⭐ を 1つ えらんで「きょうの いちばん」を きめよう';
+  $('#maru-count').textContent = maruCount();
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.dataset.id){
+    const i = S.items.find(x=>x.id===t.dataset.id);
+    if (document.body.classList.contains('editing')) return;
+    const key = i.when==='week' ? weekKey(now()) : ymd(now());
+    const L = dayLog(key), was = dayResult(ymd(now()));
+    const idx = L.done.indexOf(i.id);
+    if (idx>=0) L.done.splice(idx,1); else { L.done.push(i.id); say((i.text||'')+'、できたね'); }
+    // しゅうの 分も その日の きろくに のこす（ふりかえり 用）
+    save(); renderToday();
+    if (idx<0){
+      const nowR = dayResult(ymd(now()));
+      if (nowR==='full' && was!=='full') cheer(true, 'きょうは ハナマル！');
+      else if (S.log[ymd(now())]?.star===i.id) cheer(false, 'いちばんが できた！');
+      const c = maruCount(); if (nowR==='full' && was!=='full' && c%10===0) setTimeout(()=>toast(`🎉 ハナマル ${c}こ！ ごほうびの 日！`),1800);
+    }
+  } else if (t.dataset.star){
+    const L = dayLog(ymd(now())); L.star = L.star===t.dataset.star ? undefined : t.dataset.star; save(); renderToday();
+  } else if (t.dataset.del){
+    if (confirm('けしても いい？')){ S.items = S.items.filter(i=>i.id!==t.dataset.del); save(); renderAll(); }
+  } else if (t.dataset.add){ openAdd(t.dataset.add); }
+});
+function cheer(full, msg){
+  $('#cheer-mark').innerHTML = full ? maruSVG(true) : '<div style="font-size:160px">⭐</div>';
+  $('#cheer-msg').textContent = msg; $('#cheer').classList.add('show'); say(msg);
+  setTimeout(()=>$('#cheer').classList.remove('show'), 1800);
+}
+$('#cheer').onclick = () => $('#cheer').classList.remove('show');
+$('#edit-toggle').onclick = () => { const on = document.body.classList.toggle('editing'); $('#edit-toggle').textContent = on ? '✅ おわり' : '✏️ なおす'; };
+
+/* ---------- ついか ---------- */
+let F = {};
+function openAdd(when, isGoal=false){
+  F = {icon:ICONS[0], cat:'must', when, isGoal};
+  $('#icons').innerHTML = ICONS.map(ic=>`<button type="button" data-ic="${ic}">${ic}</button>`).join('');
+  $('#f-text').value = ''; $('#f-steps').value = 10;
+  $('#when-wrap').hidden = isGoal; $('#steps-wrap').hidden = !isGoal;
+  $('#dlg-title').textContent = isGoal ? 'どんな もくひょう？' : 'なにを する？';
+  sync(); $('#dlg').showModal();
+}
+function sync(){
+  document.querySelectorAll('#icons button').forEach(b=>b.classList.toggle('on', b.dataset.ic===F.icon));
+  document.querySelectorAll('#f-cat button').forEach(b=>b.classList.toggle('on', b.dataset.c===F.cat));
+  document.querySelectorAll('#f-when button').forEach(b=>b.classList.toggle('on', b.dataset.w===F.when));
+}
+$('#icons').onclick = e => { const b=e.target.closest('button'); if(b){ F.icon=b.dataset.ic; sync(); } };
+$('#f-cat').onclick = e => { const b=e.target.closest('button'); if(b){ F.cat=b.dataset.c; say(CAT[F.cat]); sync(); } };
+$('#f-when').onclick = e => { const b=e.target.closest('button'); if(b){ F.when=b.dataset.w; sync(); } };
+$('#f-ok').onclick = () => {
+  const id = 'i'+Date.now().toString(36), text = $('#f-text').value.trim();
+  if (F.isGoal){
+    S.goals.push({id, icon:F.icon, text, cat:F.cat, steps:Math.max(2,Math.min(30,+$('#f-steps').value||10)), done:0});
+  } else {
+    if (F.cat==='must' && F.when==='today' && itemsFor('today').filter(i=>i.cat==='must').length>=3){
+      toast('🔴 やること は 1日 3つまで。どれが だいじかな？'); return;
+    }
+    const it = {id, icon:F.icon, text, cat:F.cat, when:F.when};
+    if (F.when==='today') it.date = ymd(now());
+    if (F.when==='week') it.week = weekKey(now());
+    S.items.push(it);
+  }
+  save(); $('#dlg').close(); renderAll(); say('ふやしたよ');
+};
+
+/* ---------- カレンダー ---------- */
+let calM = new Date(now().getFullYear(), now().getMonth(), 1);
+function renderCal(){
+  const y = calM.getFullYear(), m = calM.getMonth();
+  $('#cal-title').textContent = `${y}年 ${m+1}月`;
+  const first = new Date(y,m,1).getDay(), days = new Date(y,m+1,0).getDate(), tk = ymd(now());
+  let h = WD.map((w,i)=>`<div class="h ${i===0?'sun':i===6?'sat':''}">${w}</div>`).join('');
+  for (let i=0;i<first;i++) h += '<div class="d blank"></div>';
+  for (let d=1; d<=days; d++){
+    const k = `${y}-${pad(m+1)}-${pad(d)}`, r = dayResult(k), st = S.log[k]?.star;
+    const starDone = st && S.log[k].done.includes(st);
+    h += `<div class="d ${k===tk?'today':''}">${d}<div class="mk">${r?maruSVG(r==='full'):''}</div>${starDone?'<span class="st">⭐</span>':''}</div>`;
+  }
+  $('#cal').innerHTML = h;
+  // ふりかえり（こんしゅう）
+  const mon = new Date(now()); mon.setDate(mon.getDate()-((mon.getDay()+6)%7));
+  const cnt = {must:0,better:0,want:0}; let maru = 0;
+  for (let i=0;i<7;i++){ const d=new Date(mon); d.setDate(mon.getDate()+i); const k=ymd(d);
+    if (dayResult(k)==='full') maru++;
+    (S.log[k]?.done||[]).forEach(id=>{ const it=S.items.find(x=>x.id===id); if(it) cnt[it.cat]++; }); }
+  (S.log[weekKey(now())]?.done||[]).forEach(id=>{ const it=S.items.find(x=>x.id===id); if(it) cnt[it.cat]++; });
+  $('#review').innerHTML = `<p style="font-size:22px;margin:0 0 8px">🌸 ハナマル <b>${maru}</b>こ ／
+    <span class="lg-must" style="padding:2px 8px;border-radius:8px">🔴 ${cnt.must}</span>
+    <span class="lg-better" style="padding:2px 8px;border-radius:8px">🟡 ${cnt.better}</span>
+    <span class="lg-want" style="padding:2px 8px;border-radius:8px">🔵 ${cnt.want}</span></p>
+    <p class="note" style="margin:0">おうちの人と はなそう：①いちばん がんばったのは？ ②らいしゅう やりたいことは？ ③🔴 は ちゃんと できた？</p>`;
+}
+$('#prev-m').onclick = () => { calM.setMonth(calM.getMonth()-1); renderCal(); };
+$('#next-m').onclick = () => { calM.setMonth(calM.getMonth()+1); renderCal(); };
+
+/* ---------- もくひょう ---------- */
+function renderGoals(){
+  $('#goals').innerHTML = S.goals.map(g=>{
+    let st = '';
+    for (let i=0;i<g.steps;i++){
+      const hgt = 15 + 85*(i+1)/g.steps;
+      st += `<div class="${i<g.done?'on':''} ${i===g.done?'next':''}" style="height:${hgt}%">${i===g.done-1?'<span class="me">🧒</span>':''}</div>`;
+    }
+    const fin = g.done>=g.steps;
+    return `<div class="goal ${g.cat}">
+      <div class="row" style="justify-content:space-between"><div style="font-size:24px;font-weight:bold">${g.icon} ${esc(g.text||'')} ${fin?'🏆':''}</div>
+      <div style="font-size:20px">${g.done} / ${g.steps}だん</div></div>
+      <div class="stairs">${st}</div>
+      <div class="ctl"><button class="pill main" data-up="${g.id}">⬆️ 1だん のぼる</button>
+      <button class="pill" data-down="${g.id}">もどす</button>
+      <button class="pill" data-gdel="${g.id}">けす</button></div></div>`;
+  }).join('');
+}
+$('#goals').onclick = e => {
+  const b = e.target.closest('button'); if(!b) return;
+  const g = S.goals.find(x=>x.id===(b.dataset.up||b.dataset.down||b.dataset.gdel));
+  if (b.dataset.up && g.done<g.steps){ g.done++; if (g.done===g.steps) cheer(true,'もくひょう たっせい！'); else say('1だん のぼった！'); }
+  if (b.dataset.down && g.done>0) g.done--;
+  if (b.dataset.gdel && confirm('けしても いい？')) S.goals = S.goals.filter(x=>x!==g);
+  save(); renderGoals();
+};
+$('#add-goal').onclick = () => openAdd(null, true);
+
+/* ---------- いんさつ ---------- */
+window.buildPrint = () => {
+  const d = now(), y = d.getFullYear(), m = d.getMonth();
+  const first = new Date(y,m,1).getDay(), days = new Date(y,m+1,0).getDate();
+  let cal = WD.map(w=>`<div class="h">${w}</div>`).join('');
+  for (let i=0;i<first;i++) cal += '<div></div>';
+  for (let i=1;i<=days;i++) cal += `<div>${i}</div>`;
+  const rt = S.items.filter(i=>i.when==='am'||i.when==='pm');
+  let tbl = `<tr><th>ルーティン</th>${Array.from({length:days},(_,i)=>`<th>${i+1}</th>`).join('')}</tr>`;
+  rt.forEach(i => tbl += `<tr><td>${i.when==='am'?'🌅':'🌙'} ${i.icon} ${esc(i.text||'')}</td>${'<td></td>'.repeat(days)}</tr>`);
+  const goals = S.goals.map(g=>`<p style="font-size:16pt;margin:4mm 0 0">${g.icon} ${esc(g.text||'')}（${g.steps}だん）</p>
+    <div class="pgoal">${Array.from({length:g.steps},(_,i)=>`<span style="${i<g.done?'background:#cfeed8':''}"></span>`).join('')}</div>`).join('');
+  $('#print').innerHTML = `<h1>${y}年 ${m+1}月の ハナマル カレンダー</h1><div class="pcal">${cal}</div>
+    <div class="pagebreak"><h1>${m+1}月の ルーティン</h1><table class="ptable">${tbl}</table>
+    <h1>ながい もくひょう</h1>${goals||'<p>（まだ ないよ）</p>'}</div>`;
+};
+window.addEventListener('beforeprint', buildPrint);
+
+/* ---------- タブ ---------- */
+const TITLES = {today:'きょう',cal:'カレンダー',goal:'ながい もくひょう',print:'いんさつ'};
+document.querySelector('nav').onclick = e => {
+  const b = e.target.closest('button'); if(!b) return;
+  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on', x===b));
+  ['today','cal','goal','print'].forEach(v => $('#v-'+v).hidden = v!==b.dataset.v);
+  $('#title').textContent = TITLES[b.dataset.v]; renderAll();
+};
+
+function renderAll(){ renderToday(); renderCal(); renderGoals(); }
+renderAll();
+// 日づけが かわったら かきなおす
+let lastDay = ymd(now());
+setInterval(()=>{ if (ymd(now())!==lastDay){ lastDay=ymd(now()); renderAll(); } }, 60000);
+})();
+</script>
+</body>
+</html>
